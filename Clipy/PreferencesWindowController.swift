@@ -114,11 +114,12 @@ private struct PreferencesView: View {
 
     private var aboutTab: some View {
         VStack(spacing: 12) {
-            Image(systemName: "doc.on.clipboard")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 64, height: 64)
-                .foregroundStyle(.blue)
+            if let icon = NSImage(named: "AppIcon") {
+                Image(nsImage: icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+            }
             Text("Modern Clipy").font(.largeTitle.bold())
             Text("Version 1.0").foregroundStyle(.secondary)
             Text("A modern clipboard manager for Apple Silicon Mac")

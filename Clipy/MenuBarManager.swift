@@ -9,8 +9,14 @@ final class MenuBarManager: NSObject {
         super.init()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let btn = statusItem.button {
-            btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Modern Clipy")
-            btn.image?.isTemplate = true
+            if let icon = NSImage(named: "MenuBarIcon") {
+                icon.size = NSSize(width: 18, height: 18)
+                btn.image = icon
+            } else {
+                // Fallback if asset not found
+                btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Modern Clipy")
+                btn.image?.isTemplate = true
+            }
         }
         buildMenu()
 
