@@ -115,16 +115,15 @@ final class ClipboardPopupController {
             p.backgroundColor = .clear
             p.hasShadow = true
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            // Wire the panel's keyDown to our handler (returns true = handled, no beep)
             p.keyDownHandler = { [weak self] event in
                 guard let self else { return false }
-                return self.handle(event) == nil  // nil means "consumed"
+                return self.handle(event) == nil
             }
-            p.contentView = NSHostingView(rootView: popupView())
             panel = p
-        } else {
-            // Reuse existing panel — just refresh state (SwiftUI updates automatically)
         }
+        // Rebuild the hosting view every time so it always renders
+        // with the current state (items, menuStyle, etc.) from scratch.
+        panel?.contentView = NSHostingView(rootView: popupView())
     }
 
     private func popupView() -> ClipboardPopupView {
