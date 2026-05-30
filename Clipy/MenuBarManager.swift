@@ -9,7 +9,7 @@ final class MenuBarManager: NSObject {
         super.init()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let btn = statusItem.button {
-            btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Clipy")
+            btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Modern Clipy")
             btn.image?.isTemplate = true
         }
         buildMenu()
@@ -97,7 +97,7 @@ final class MenuBarManager: NSObject {
 
         menu.addItem(.separator())
 
-        menu.addItem(NSMenuItem(title: "Quit Clipy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Modern Clipy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         statusItem.menu = menu
     }

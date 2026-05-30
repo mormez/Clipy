@@ -118,7 +118,7 @@ COMMON_TARGET = f"""
 \t\t\t\t\t"@executable_path/../Frameworks",
 \t\t\t\t);
 \t\t\t\tMACOSX_DEPLOYMENT_TARGET = 15.0;
-\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.clipy.Clipy;
+\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.clipy.ModernClipy;
 \t\t\t\tPRODUCT_NAME = "$(TARGET_NAME)";
 \t\t\t\tSWIFT_VERSION = 5.0;"""
 

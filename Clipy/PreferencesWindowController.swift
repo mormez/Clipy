@@ -9,7 +9,7 @@ final class PreferencesWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Clipy Preferences"
+        window.title = "Modern Clipy Preferences"
         window.isReleasedWhenClosed = false
         window.center()
         window.contentView = NSHostingView(rootView: PreferencesView())
@@ -45,7 +45,7 @@ private struct PreferencesView: View {
                 .onChange(of: historyCount) { _, v in prefs.maxHistoryItems = Int(v) }
             }
             Section("Startup") {
-                Toggle("Launch Clipy at login", isOn: $prefs.launchAtLogin)
+                Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)
             }
             Section("Hotkey") {
                 Text("Ctrl + Shift + V — show clipboard history")
@@ -90,7 +90,7 @@ private struct PreferencesView: View {
                 .scaledToFit()
                 .frame(width: 64, height: 64)
                 .foregroundStyle(.blue)
-            Text("Clipy").font(.largeTitle.bold())
+            Text("Modern Clipy").font(.largeTitle.bold())
             Text("Version 1.0").foregroundStyle(.secondary)
             Text("A modern clipboard manager for Apple Silicon Mac")
                 .multilineTextAlignment(.center)

@@ -52,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showAccessibilityAlert() {
         let alert = NSAlert()
         alert.messageText = "Accessibility Permission Required"
-        alert.informativeText = "Clipy needs Accessibility permission to paste items to other apps. Please grant it in System Settings → Privacy & Security → Accessibility, then relaunch Clipy."
+        alert.informativeText = "Modern Clipy needs Accessibility permission to paste items to other apps. Please grant it in System Settings → Privacy & Security → Accessibility, then relaunch Modern Clipy."
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Open System Settings")
         alert.addButton(withTitle: "Later")
