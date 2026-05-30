@@ -36,6 +36,21 @@ private struct PreferencesView: View {
 
     private var generalTab: some View {
         Form {
+            Section("Permissions") {
+                HStack {
+                    Image(systemName: AXIsProcessTrustedWithOptions(nil) ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundStyle(AXIsProcessTrustedWithOptions(nil) ? .green : .orange)
+                    Text(AXIsProcessTrustedWithOptions(nil) ? "Accessibility granted" : "Accessibility not granted")
+                        .foregroundStyle(AXIsProcessTrustedWithOptions(nil) ? Color.primary : Color.orange)
+                    Spacer()
+                    Button("Open System Settings") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+
             Section("Clipboard History") {
                 HStack {
                     Text("Maximum items:")
