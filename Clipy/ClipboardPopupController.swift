@@ -62,7 +62,7 @@ final class ClipboardPopupController {
         if panel == nil {
             let p = NSPanel(
                 contentRect: NSRect(x: 0, y: 0, width: 460, height: 100),
-                styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
+                styleMask: [.titled, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
@@ -149,13 +149,35 @@ final class ClipboardPopupController {
     // MARK: - Paste
 
     func paste(_ item: ClipItem) {
+        let app = previousApp
         hide()
         ClipboardMonitor.shared.pause()
         PasteService.shared.setClipboard(item: item)
-        let app = previousApp
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            app?.activate(options: .activateIgnoringOtherApps)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+
+        // Re-activate the previous app, wait for it to become frontmost,
+        // then send Cmd+V. Using the workspace notification is more reliable
+        // than a fixed delay.
+        var observer: NSObjectProtocol?
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil, queue: .main
+        ) { [weak self] note in
+            let activated = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard activated?.bundleIdentifier == app?.bundleIdentifier else { return }
+            NSWorkspace.shared.notificationCenter.removeObserver(observer!)
+            observer = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                PasteService.shared.triggerPaste()
+            }
+        }
+
+        app?.activate(options: .activateIgnoringOtherApps)
+
+        // Safety fallback in case notification never fires (e.g. same app)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            if let o = observer {
+                NSWorkspace.shared.notificationCenter.removeObserver(o)
+                observer = nil
                 PasteService.shared.triggerPaste()
             }
         }
