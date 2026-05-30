@@ -10,12 +10,29 @@ final class PopupState {
     var selectedIndex: Int = 0
 }
 
+// MARK: - Custom panel that silently swallows unhandled key events (prevents beep)
+
+private final class ClipboardPanel: NSPanel {
+    var keyDownHandler: ((NSEvent) -> Bool)?
+
+    override var canBecomeKey: Bool { true }
+    override var acceptsFirstResponder: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        // If our handler claims the event, do NOT call super.
+        // Calling super on an unhandled key is what causes the system beep.
+        if keyDownHandler?(event) != true {
+            super.keyDown(with: event)
+        }
+    }
+}
+
 // MARK: - Controller
 
 final class ClipboardPopupController {
     static let shared = ClipboardPopupController()
 
-    private var panel: NSPanel?
+    private var panel: ClipboardPanel?
     private var keyMonitor: Any?
     private var resignObserver: NSObjectProtocol?
     private var previousApp: NSRunningApplication?
@@ -42,8 +59,12 @@ final class ClipboardPopupController {
             object: panel, queue: .main
         ) { [weak self] _ in self?.hide() }
 
+        // Belt-and-suspenders: local monitor + panel subclass keyDown both handle keys.
+        // The monitor fires first; returning nil removes the event entirely (no beep).
+        // The panel subclass keyDown is a fallback that also prevents beep.
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handle(event) ?? event
+            guard let self else { return event }
+            return self.handle(event)
         }
 
         panel?.makeKeyAndOrderFront(nil)
@@ -60,7 +81,7 @@ final class ClipboardPopupController {
 
     private func buildPanel() {
         if panel == nil {
-            let p = NSPanel(
+            let p = ClipboardPanel(
                 contentRect: NSRect(x: 0, y: 0, width: 460, height: 100),
                 styleMask: [.titled, .fullSizeContentView],
                 backing: .buffered,
@@ -77,6 +98,11 @@ final class ClipboardPopupController {
             p.backgroundColor = .clear
             p.hasShadow = true
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            // Wire the panel's keyDown to our handler (returns true = handled, no beep)
+            p.keyDownHandler = { [weak self] event in
+                guard let self else { return false }
+                return self.handle(event) == nil  // nil means "consumed"
+            }
             p.contentView = NSHostingView(rootView: popupView())
             panel = p
         } else {

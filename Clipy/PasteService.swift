@@ -4,11 +4,14 @@ final class PasteService {
     static let shared = PasteService()
     private init() {}
 
-    // Used by menu bar items (sets clipboard + triggers paste in one shot)
+    // Used by the menu bar — sets clipboard then pastes with a short delay
+    // so the menu has time to close and the previous app regains focus.
     func paste(item: ClipItem) {
         ClipboardMonitor.shared.pause()
         setClipboard(item: item)
-        triggerPaste()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            PasteService.shared.triggerPaste()
+        }
     }
 
     func pasteString(_ string: String) {
@@ -16,11 +19,13 @@ final class PasteService {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(string, forType: .string)
-        triggerPaste()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            PasteService.shared.triggerPaste()
+        }
     }
 
-    // Exposed for ClipboardPopupController so it can activate the
-    // previous app between setting the clipboard and triggering paste.
+    // Called by ClipboardPopupController after it has already re-activated
+    // the target app — no extra delay needed here.
     func setClipboard(item: ClipItem) {
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -47,12 +52,19 @@ final class PasteService {
     }
 
     func triggerPaste() {
+        // If not trusted, open System Settings and bail — silent failure
+        // is confusing; at least show the user where to fix it.
+        guard AXIsProcessTrustedWithOptions(nil) else {
+            let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+            AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
+            return
+        }
         let src = CGEventSource(stateID: .combinedSessionState)
-        let vDown = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: true)
-        vDown?.flags = .maskCommand
-        vDown?.post(tap: .cgAnnotatedSessionEventTap)
-        let vUp = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: false)
-        vUp?.flags = .maskCommand
-        vUp?.post(tap: .cgAnnotatedSessionEventTap)
+        let down = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: true)
+        down?.flags = .maskCommand
+        down?.post(tap: .cghidEventTap)
+        let up = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: false)
+        up?.flags = .maskCommand
+        up?.post(tap: .cghidEventTap)
     }
 }
