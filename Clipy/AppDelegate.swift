@@ -43,11 +43,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // Check silently — no blocking popup. Show a warning item in the menu instead,
-    // which disappears automatically once the user grants permission.
+    // First call uses the prompt flag so macOS registers the app in the
+    // Accessibility list. Subsequent polls are silent — no dialogs.
     private func startAccessibilityCheck() {
-        checkAccessibility()
-        // Poll every 5 s so the warning clears as soon as the user grants permission
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        let trusted = AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
+        menuBarManager?.setAccessibilityWarning(!trusted)
+
+        // Poll every 5 s so the warning clears the moment permission is granted
         accessibilityTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             self?.checkAccessibility()
         }
