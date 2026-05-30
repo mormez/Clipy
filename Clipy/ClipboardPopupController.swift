@@ -190,7 +190,30 @@ final class ClipboardPopupController {
 
     private func resizeAndRefresh() {
         sizePanel()
+        clampToScreen()
         panel?.contentView = NSHostingView(rootView: makeView())
+    }
+
+    /// After a resize keep the panel fully visible — move it up if the
+    /// bottom edge went off screen.
+    private func clampToScreen() {
+        guard let panel, let screen = NSScreen.main else { return }
+        let sf  = screen.visibleFrame
+        let pf  = panel.frame
+        var origin = pf.origin
+
+        // Clamp bottom edge
+        if origin.y < sf.minY + 8 {
+            origin.y = sf.minY + 8
+        }
+        // Clamp top edge (in case the panel is now taller than the screen)
+        if origin.y + pf.height > sf.maxY - 8 {
+            origin.y = sf.maxY - pf.height - 8
+        }
+
+        if origin != pf.origin {
+            panel.setFrameOrigin(origin)
+        }
     }
 
     private func sizePanel() {
