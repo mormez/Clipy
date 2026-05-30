@@ -39,9 +39,11 @@ final class MenuBarManager: NSObject {
             e.isEnabled = false
             menu.addItem(e)
         } else if items.count <= 10 {
-            // 10 or fewer — show inline with number shortcuts
+            // 10 or fewer — show inline; use "0" for 10th (single-char limit)
             for (i, item) in items.enumerated() {
-                menu.addItem(makeHistoryItem(item: item, shortcut: "\(i + 1)"))
+                let number = i + 1
+                let key    = i < 9 ? "\(number)" : "0"
+                menu.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
             }
         } else {
             // Group into submenus of 10: "1 – 10", "11 – 20", etc.
@@ -51,13 +53,13 @@ final class MenuBarManager: NSObject {
             }
             for (pageIndex, page) in pages.enumerated() {
                 let start = pageIndex * pageSize + 1
-                let end   = (pageIndex + 1) * pageSize   // always the full range, e.g. 11-20
+                let end   = (pageIndex + 1) * pageSize
                 let folder = NSMenuItem(title: "  \(start) – \(end)", action: nil, keyEquivalent: "")
                 let sub = NSMenu()
                 for (i, item) in page.enumerated() {
-                    // Keep 1-9, use 0 for the 10th item
-                    let key = i < 9 ? "\(i + 1)" : "0"
-                    sub.addItem(makeHistoryItem(item: item, shortcut: key))
+                    let number = pageIndex * pageSize + i + 1   // absolute: 1-50
+                    let key    = i < 9 ? "\(i + 1)" : "0"      // per-page shortcut 1-9, 0
+                    sub.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
                 }
                 folder.submenu = sub
                 menu.addItem(folder)
@@ -131,9 +133,9 @@ final class MenuBarManager: NSObject {
         PasteService.shared.pasteString(snippet.content)
     }
 
-    private func makeHistoryItem(item: ClipItem, shortcut: String) -> NSMenuItem {
+    private func makeHistoryItem(item: ClipItem, number: Int, shortcut: String) -> NSMenuItem {
         let mi = NSMenuItem(
-            title: "  \(item.displayTitle)",
+            title: "  \(number).  \(item.displayTitle)",
             action: #selector(pasteHistoryItem(_:)),
             keyEquivalent: shortcut
         )
