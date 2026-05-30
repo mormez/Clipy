@@ -9,7 +9,7 @@ xcodebuild \
   -derivedDataPath build/DerivedData \
   build
 
-APP=$(find build/DerivedData -name "Clipy.app" -type d | head -1)
+APP=$(find build/DerivedData -name "ModernClipy.app" -type d | head -1)
 echo ""
 echo "✓ Build succeeded: $APP"
 echo ""
