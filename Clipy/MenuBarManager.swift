@@ -4,6 +4,7 @@ final class MenuBarManager: NSObject {
     private var statusItem: NSStatusItem!
     private var historyObserver: NSObjectProtocol?
     private var snippetsObserver: NSObjectProtocol?
+    private var showAccessibilityWarning = false
 
     override init() {
         super.init()
@@ -28,8 +29,27 @@ final class MenuBarManager: NSObject {
         statusItem.button?.performClick(nil)
     }
 
+    /// Called by AppDelegate every 5 s; rebuilds only when the state changes.
+    func setAccessibilityWarning(_ show: Bool) {
+        guard show != showAccessibilityWarning else { return }
+        showAccessibilityWarning = show
+        buildMenu()
+    }
+
     func buildMenu() {
         let menu = NSMenu()
+
+        // --- Accessibility warning (only when permission is missing) ---
+        if showAccessibilityWarning {
+            let warn = NSMenuItem(
+                title: "⚠️ Grant Accessibility Permission…",
+                action: #selector(openAccessibilitySettings),
+                keyEquivalent: ""
+            )
+            warn.target = self
+            menu.addItem(warn)
+            menu.addItem(.separator())
+        }
 
         // --- History ---
         addHeader("Clipboard History", to: menu)
@@ -111,6 +131,10 @@ final class MenuBarManager: NSObject {
         ]
         item.attributedTitle = NSAttributedString(string: title, attributes: attrs)
         menu.addItem(item)
+    }
+
+    @objc private func openAccessibilitySettings() {
+        (NSApp.delegate as? AppDelegate)?.openAccessibilitySettings()
     }
 
     @objc private func pasteHistoryItem(_ sender: NSMenuItem) {
