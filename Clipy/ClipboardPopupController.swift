@@ -157,6 +157,7 @@ final class ClipboardPopupController {
             style: currentStyle,
             flatItems: currentFlatItems,
             folders: currentFolders,
+            folderColWidth: folderColW,
             onSelectItem:     { [weak self] item in self?.paste(item) },
             onExpandFolder:   { [weak self] fi in
                 self?.state.expandedFolderIndex = fi
@@ -331,18 +332,20 @@ struct ClipboardPopupView: View {
     let style: HistoryMenuStyle
     let flatItems: [ClipItem]
     let folders: [PopupFolder]
+    let folderColWidth: CGFloat
     let onSelectItem: (ClipItem) -> Void
     let onExpandFolder: (Int) -> Void
     let onCollapseFolder: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            // Left column — always visible
+            // Left column — fixed width, always visible
             VStack(spacing: 0) {
                 popupHeader
                 Divider()
                 leftContent
             }
+            .frame(width: folderColWidth)
 
             // Right column — visible when a folder is expanded
             if let fi = state.expandedFolderIndex, fi < folders.count {
