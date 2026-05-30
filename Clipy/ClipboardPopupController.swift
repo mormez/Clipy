@@ -423,11 +423,7 @@ struct ClipboardPopupView: View {
                         isSelected: (state.expandedFolderIndex == nil && state.selectedFolderIndex == rowIndex) || isOpen,
                         hoverEnabled: state.hoverEnabled,
                         onSelect: { onExpandFolder(fi) },
-                        onHover: { if $0 {
-                            state.selectedFolderIndex = rowIndex
-                            // Open folder on hover (like NSMenu submenus)
-                            onExpandFolder(fi)
-                        }}
+                        onHover: { if $0 { state.selectedFolderIndex = rowIndex } }
                     )
                     if fi < folders.count - 1 { Divider().padding(.leading, 10) }
                 }
