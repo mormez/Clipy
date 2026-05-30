@@ -188,11 +188,14 @@ final class ClipboardPopupController {
             return CGFloat(currentFolders[fi].items.count) * itemRowH
         }()
 
-        let bottomMargin: CGFloat = 12   // breathing room below the last row
-        // Height is always driven by the left (folder) column only.
-        // The right (items) column scrolls within the same height.
-        let contentH = headerH + leftRows + bottomMargin
-        let h        = min(contentH, maxH)
+        let bottomMargin: CGFloat = 12
+        // When items pane is open: height fits the items (right column).
+        // When only folders are shown: height fits the folders (left column).
+        // The folder rows always sit at the top of the left column; the
+        // window just gets taller when items are shown.
+        let activeRows = hasItems ? rightRows : leftRows
+        let contentH   = headerH + activeRows + bottomMargin
+        let h          = min(contentH, maxH)
         panel?.setContentSize(NSSize(width: totalW, height: h))
     }
 
