@@ -8,10 +8,8 @@ import Observation
 final class PopupState {
     var items: [ClipItem] = []
     var selectedIndex: Int = 0
-    /// Hover selection is disabled until the user actually moves the mouse,
-    /// preventing a random row from being highlighted just because the cursor
-    /// happened to be under the popup when it appeared.
     var hoverEnabled = false
+    var groupingEnabled = false
 }
 
 // MARK: - Custom panel that silently swallows unhandled key events (prevents beep)
@@ -51,9 +49,11 @@ final class ClipboardPopupController {
 
     func show() {
         previousApp = NSWorkspace.shared.frontmostApplication
-        state.items = Array(ClipboardHistory.shared.items.prefix(10))
+        state.items = ClipboardHistory.shared.items   // full list up to maxHistoryItems
         state.selectedIndex = 0
-        state.hoverEnabled = false   // re-armed on each show; enabled after first mouse move
+        state.hoverEnabled = false
+        let prefs = Preferences.shared
+        state.groupingEnabled = prefs.alwaysGroupInSubfolders || state.items.count > 10
         guard !state.items.isEmpty else { return }
 
         buildPanel()
@@ -138,10 +138,18 @@ final class ClipboardPopupController {
 
     private func sizePanel() {
         let itemH: CGFloat = 46
-        let headerH: CGFloat = 50
-        let shadowPad: CGFloat = 16   // padding around the popup for shadow
+        let sectionH: CGFloat = 26    // height of each group header
+        let popupHeaderH: CGFloat = 50
+        let shadowPad: CGFloat = 16
         let w: CGFloat = 460
-        let h = headerH + itemH * CGFloat(state.items.count) + shadowPad * 2
+        let maxH: CGFloat = 520       // cap so popup never gets unwieldy tall
+
+        var contentH = popupHeaderH + itemH * CGFloat(state.items.count)
+        if state.groupingEnabled {
+            let numSections = max(1, (state.items.count + 9) / 10)
+            contentH += sectionH * CGFloat(numSections)
+        }
+        let h = min(contentH + shadowPad * 2, maxH + shadowPad * 2)
         panel?.setContentSize(NSSize(width: w, height: h))
     }
 
@@ -239,7 +247,13 @@ struct ClipboardPopupView: View {
         VStack(spacing: 0) {
             header
             Divider()
-            itemList
+            ScrollView {
+                if state.groupingEnabled {
+                    groupedItemList
+                } else {
+                    flatItemList
+                }
+            }
         }
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -263,7 +277,8 @@ struct ClipboardPopupView: View {
         .padding(.vertical, 11)
     }
 
-    private var itemList: some View {
+    // Flat list — used when grouping is off and ≤10 items
+    private var flatItemList: some View {
         VStack(spacing: 0) {
             ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
                 PopupItemRow(
@@ -276,6 +291,43 @@ struct ClipboardPopupView: View {
                 )
                 if index < state.items.count - 1 {
                     Divider().padding(.leading, 46)
+                }
+            }
+        }
+    }
+
+    // Grouped list — "1 – 10", "11 – 20" section headers
+    private var groupedItemList: some View {
+        let pageSize = 10
+        let pages = stride(from: 0, to: state.items.count, by: pageSize).map { start in
+            (start: start, items: Array(state.items[start ..< min(start + pageSize, state.items.count)]))
+        }
+        return VStack(spacing: 0) {
+            ForEach(Array(pages.enumerated()), id: \.offset) { pageIndex, page in
+                // Section header
+                HStack {
+                    Text("\(page.start + 1) – \(( pageIndex + 1) * pageSize)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 5)
+                .background(Color.primary.opacity(0.04))
+
+                ForEach(Array(page.items.enumerated()), id: \.element.id) { i, item in
+                    let absIndex = page.start + i
+                    PopupItemRow(
+                        item: item,
+                        number: absIndex + 1,
+                        isSelected: state.selectedIndex == absIndex,
+                        hoverEnabled: state.hoverEnabled,
+                        onSelect: { onSelect(item) },
+                        onHover: { if $0 { state.selectedIndex = absIndex } }
+                    )
+                    if i < page.items.count - 1 {
+                        Divider().padding(.leading, 46)
+                    }
                 }
             }
         }
