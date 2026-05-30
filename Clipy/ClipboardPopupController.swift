@@ -9,7 +9,6 @@ final class PopupState {
     var items: [ClipItem] = []
     var selectedIndex: Int = 0
     var hoverEnabled = false
-    var menuStyle: HistoryMenuStyle = .alwaysGrouped
 }
 
 // MARK: - Custom panel that silently swallows unhandled key events (prevents beep)
@@ -52,7 +51,6 @@ final class ClipboardPopupController {
         state.items = ClipboardHistory.shared.items
         state.selectedIndex = 0
         state.hoverEnabled = false
-        state.menuStyle = Preferences.shared.historyMenuStyle
         guard !state.items.isEmpty else { return }
 
         buildPanel()
@@ -129,6 +127,7 @@ final class ClipboardPopupController {
     private func popupView() -> ClipboardPopupView {
         ClipboardPopupView(
             state: state,
+            menuStyle: Preferences.shared.historyMenuStyle,   // read fresh on every open
             onSelect: { [weak self] item in self?.paste(item) },
             onDismiss: { [weak self] in self?.hide() }
         )
@@ -143,11 +142,12 @@ final class ClipboardPopupController {
         let maxH: CGFloat = 520       // cap so popup never gets unwieldy tall
 
         var contentH = popupHeaderH + itemH * CGFloat(state.items.count)
-        let isGrouped = state.menuStyle == .alwaysGrouped ||
-                        state.menuStyle == .hybridFirstFlat ||
-                       (state.menuStyle == .flatWhenFew && state.items.count > 10)
+        let style = Preferences.shared.historyMenuStyle
+        let isGrouped = style == .alwaysGrouped ||
+                        style == .hybridFirstFlat ||
+                       (style == .flatWhenFew && state.items.count > 10)
         if isGrouped {
-            let pagedCount = state.menuStyle == .hybridFirstFlat
+            let pagedCount = style == .hybridFirstFlat
                 ? max(0, state.items.count - 10) : state.items.count
             let numSections = max(1, (pagedCount + 9) / 10)
             contentH += sectionH * CGFloat(numSections)
@@ -243,6 +243,7 @@ final class ClipboardPopupController {
 
 struct ClipboardPopupView: View {
     var state: PopupState
+    let menuStyle: HistoryMenuStyle   // baked in at creation — no SwiftUI tracking needed
     let onSelect: (ClipItem) -> Void
     let onDismiss: () -> Void
 
@@ -251,7 +252,7 @@ struct ClipboardPopupView: View {
             header
             Divider()
             ScrollView {
-                switch state.menuStyle {
+                switch menuStyle {
                 case .alwaysGrouped:
                     groupedItemList(flatFirst: false)
                 case .hybridFirstFlat:
@@ -262,6 +263,7 @@ struct ClipboardPopupView: View {
                     } else {
                         groupedItemList(flatFirst: false)
                     }
+
                 }
             }
         }
