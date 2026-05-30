@@ -60,6 +60,8 @@ private struct PreferencesView: View {
                 }
                 .pickerStyle(.menu)
                 .frame(maxWidth: 280)
+
+                Toggle("Always group items in subfolders", isOn: $prefs.alwaysGroupInSubfolders)
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)

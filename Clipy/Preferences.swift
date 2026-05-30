@@ -26,6 +26,9 @@ final class Preferences: ObservableObject {
             updateLoginItem()
         }
     }
+    @Published var alwaysGroupInSubfolders: Bool {
+        didSet { set(alwaysGroupInSubfolders, for: .alwaysGroupInSubfolders) }
+    }
 
     private init() {
         maxHistoryItems = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
@@ -33,12 +36,13 @@ final class Preferences: ObservableObject {
         mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
         launchAtLogin = ud.bool(forKey: Key.launchAtLogin.rawValue)
+        alwaysGroupInSubfolders = ud.object(forKey: Key.alwaysGroupInSubfolders.rawValue) as? Bool ?? true
     }
 
     private let ud = UserDefaults.standard
 
     private enum Key: String {
-        case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers, excludedBundleIDs, launchAtLogin
+        case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers, excludedBundleIDs, launchAtLogin, alwaysGroupInSubfolders
     }
 
     private func set(_ value: Any, for key: Key) {

@@ -44,8 +44,15 @@ final class MenuBarManager: NSObject {
             let e = NSMenuItem(title: "  (empty)", action: nil, keyEquivalent: "")
             e.isEnabled = false
             menu.addItem(e)
+        } else if items.count <= 10 && !Preferences.shared.alwaysGroupInSubfolders {
+            // Flat: show items directly when ≤10 and user prefers it
+            for (i, item) in items.enumerated() {
+                let number = i + 1
+                let key    = i < 9 ? "\(number)" : "0"
+                menu.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
+            }
         } else {
-            // Always group into submenus of 10: "1 – 10", "11 – 20", etc.
+            // Grouped: "1 – 10", "11 – 20", etc.
             let pageSize = 10
             let pages = stride(from: 0, to: items.count, by: pageSize).map {
                 Array(items[$0 ..< min($0 + pageSize, items.count)])
