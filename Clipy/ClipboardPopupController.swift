@@ -52,7 +52,7 @@ final class ClipboardPopupController {
     private var currentStyle: HistoryMenuStyle = .alwaysGrouped
 
     // Layout constants
-    private let colW: CGFloat    = 260   // width of each column
+    private let colW: CGFloat    = 200   // width of each column
     private let shadowPad: CGFloat = 16
     private let headerH: CGFloat  = 50
     private let folderRowH: CGFloat = 40
