@@ -6,7 +6,10 @@ final class Preferences: ObservableObject {
     static let shared = Preferences()
 
     @Published var maxHistoryItems: Int {
-        didSet { set(maxHistoryItems, for: .maxHistoryItems) }
+        didSet {
+            set(maxHistoryItems, for: .maxHistoryItems)
+            ClipboardHistory.shared.trim(to: maxHistoryItems)
+        }
     }
     @Published var mainMenuKeyCode: UInt32 {
         didSet { set(Int(mainMenuKeyCode), for: .mainMenuKeyCode) }
