@@ -191,7 +191,7 @@ final class ClipboardPopupController {
         }()
 
         let contentH  = headerH + max(leftRows, rightRows)
-        let h         = min(contentH + shadowPad * 2, maxH + shadowPad * 2)
+        let h         = min(contentH, maxH)
         panel?.setContentSize(NSSize(width: totalW, height: h))
     }
 
@@ -358,8 +358,6 @@ struct ClipboardPopupView: View {
         }
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .shadow(color: .black.opacity(0.28), radius: 20, x: 0, y: 8)
-        .padding(8)
     }
 
     // MARK: Headers
