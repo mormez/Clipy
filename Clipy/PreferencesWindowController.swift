@@ -44,7 +44,6 @@ private struct PreferencesView: View {
                         .frame(width: 60)
                         .multilineTextAlignment(.center)
                         .onSubmit { applyHistoryCount() }
-                        .onChange(of: historyCountText) { _, _ in applyHistoryCount() }
                     Text("(1 – 50)")
                         .foregroundStyle(.secondary)
                         .font(.callout)
@@ -65,6 +64,7 @@ private struct PreferencesView: View {
         .formStyle(.grouped)
         .padding()
         .onAppear { historyCountText = "\(prefs.maxHistoryItems)" }
+        .onDisappear { applyHistoryCount() }
     }
 
     private func applyHistoryCount() {
