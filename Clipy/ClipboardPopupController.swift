@@ -8,6 +8,10 @@ import Observation
 final class PopupState {
     var items: [ClipItem] = []
     var selectedIndex: Int = 0
+    /// Hover selection is disabled until the user actually moves the mouse,
+    /// preventing a random row from being highlighted just because the cursor
+    /// happened to be under the popup when it appeared.
+    var hoverEnabled = false
 }
 
 // MARK: - Custom panel that silently swallows unhandled key events (prevents beep)
@@ -34,6 +38,7 @@ final class ClipboardPopupController {
 
     private var panel: ClipboardPanel?
     private var keyMonitor: Any?
+    private var mouseMoveMonitor: Any?
     private var resignObserver: NSObjectProtocol?
     private var previousApp: NSRunningApplication?
     let state = PopupState()
@@ -48,6 +53,7 @@ final class ClipboardPopupController {
         previousApp = NSWorkspace.shared.frontmostApplication
         state.items = Array(ClipboardHistory.shared.items.prefix(10))
         state.selectedIndex = 0
+        state.hoverEnabled = false   // re-armed on each show; enabled after first mouse move
         guard !state.items.isEmpty else { return }
 
         buildPanel()
@@ -67,6 +73,17 @@ final class ClipboardPopupController {
             return self.handle(event)
         }
 
+        // Enable hover selection only after the user moves the mouse deliberately.
+        // We remove the monitor after the first move to keep overhead minimal.
+        panel?.acceptsMouseMovedEvents = true
+        mouseMoveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+            guard let self else { return event }
+            self.state.hoverEnabled = true
+            NSEvent.removeMonitor(self.mouseMoveMonitor as Any)
+            self.mouseMoveMonitor = nil
+            return event
+        }
+
         panel?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -74,6 +91,7 @@ final class ClipboardPopupController {
     func hide() {
         if let o = resignObserver { NotificationCenter.default.removeObserver(o); resignObserver = nil }
         if let m = keyMonitor { NSEvent.removeMonitor(m); keyMonitor = nil }
+        if let m = mouseMoveMonitor { NSEvent.removeMonitor(m); mouseMoveMonitor = nil }
         panel?.orderOut(nil)
     }
 
@@ -252,6 +270,7 @@ struct ClipboardPopupView: View {
                     item: item,
                     number: index + 1,
                     isSelected: state.selectedIndex == index,
+                    hoverEnabled: state.hoverEnabled,
                     onSelect: { onSelect(item) },
                     onHover: { if $0 { state.selectedIndex = index } }
                 )
@@ -267,6 +286,7 @@ struct PopupItemRow: View {
     let item: ClipItem
     let number: Int
     let isSelected: Bool
+    let hoverEnabled: Bool
     let onSelect: () -> Void
     let onHover: (Bool) -> Void
 
@@ -293,7 +313,7 @@ struct PopupItemRow: View {
         .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
-        .onHover(perform: onHover)
+        .onHover { if hoverEnabled { onHover($0) } }
         .animation(.easeInOut(duration: 0.08), value: isSelected)
     }
 
