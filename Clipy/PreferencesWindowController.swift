@@ -81,6 +81,13 @@ private struct PreferencesView: View {
                         keyCode: $prefs.mainMenuKeyCode,
                         modifiers: $prefs.mainMenuModifiers
                     )
+                    Button("Restore Default") {
+                        prefs.mainMenuKeyCode  = UInt32(kVK_ANSI_V)
+                        prefs.mainMenuModifiers = UInt32(controlKey | shiftKey)
+                        NotificationCenter.default.post(name: .preferencesChanged, object: nil)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
             }
         }
