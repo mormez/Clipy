@@ -48,6 +48,14 @@ final class MenuBarManager: NSObject {
             )
             warn.target = self
             menu.addItem(warn)
+
+            let dismiss = NSMenuItem(
+                title: "    ✓ I already granted it — dismiss",
+                action: #selector(dismissAccessibilityWarning),
+                keyEquivalent: ""
+            )
+            dismiss.target = self
+            menu.addItem(dismiss)
             menu.addItem(.separator())
         }
 
@@ -135,6 +143,11 @@ final class MenuBarManager: NSObject {
 
     @objc private func openAccessibilitySettings() {
         (NSApp.delegate as? AppDelegate)?.openAccessibilitySettings()
+    }
+
+    @objc private func dismissAccessibilityWarning() {
+        showAccessibilityWarning = false
+        buildMenu()
     }
 
     @objc private func pasteHistoryItem(_ sender: NSMenuItem) {
