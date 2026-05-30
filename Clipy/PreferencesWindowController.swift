@@ -22,8 +22,9 @@ final class PreferencesWindowController: NSWindowController {
 
 private struct PreferencesView: View {
     @ObservedObject private var prefs = Preferences.shared
-    @State private var historyCountText: String = "\(Preferences.shared.maxHistoryItems)"
     @State private var excludedText: String = Preferences.shared.excludedBundleIDs.joined(separator: "\n")
+
+    private let historyOptions = stride(from: 5, through: 50, by: 5).map { $0 }
 
     var body: some View {
         TabView {
@@ -52,17 +53,13 @@ private struct PreferencesView: View {
             }
 
             Section("Clipboard History") {
-                HStack {
-                    Text("Maximum items:")
-                    TextField("", text: $historyCountText)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 60)
-                        .multilineTextAlignment(.center)
-                        .onSubmit { applyHistoryCount() }
-                    Text("(1 – 50)")
-                        .foregroundStyle(.secondary)
-                        .font(.callout)
+                Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
+                    ForEach(historyOptions, id: \.self) { count in
+                        Text("\(count)").tag(count)
+                    }
                 }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 280)
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)
@@ -78,16 +75,13 @@ private struct PreferencesView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .onAppear { historyCountText = "\(prefs.maxHistoryItems)" }
-        .onDisappear { applyHistoryCount() }
-    }
-
-    private func applyHistoryCount() {
-        guard let value = Int(historyCountText) else { return }
-        let clamped = min(max(value, 1), 50)
-        prefs.maxHistoryItems = clamped
-        // Correct the text if it was out of range
-        if clamped != value { historyCountText = "\(clamped)" }
+        .onAppear {
+            // If stored value isn't one of our valid options, snap to nearest
+            if !historyOptions.contains(prefs.maxHistoryItems) {
+                let nearest = historyOptions.min(by: { abs($0 - prefs.maxHistoryItems) < abs($1 - prefs.maxHistoryItems) }) ?? 20
+                prefs.maxHistoryItems = nearest
+            }
+        }
     }
 
     private var excludeTab: some View {
