@@ -48,7 +48,7 @@ final class ClipboardMonitor {
     }
 
     private func captureClipboard(_ pb: NSPasteboard) {
-        // Image first
+        // 1. Image
         if let image = NSImage(pasteboard: pb), let data = image.tiffRepresentation {
             ClipboardHistory.shared.add(ClipItem(
                 id: UUID(), type: .image,
@@ -57,19 +57,54 @@ final class ClipboardMonitor {
             return
         }
 
-        let checks: [(NSPasteboard.PasteboardType, ClipType)] = [
-            (.rtf, .rtf),
-            (.html, .html),
-            (.string, .string),
-            (.fileURL, .fileURL),
-        ]
-        for (pbType, clipType) in checks {
-            if let str = pb.string(forType: pbType), !str.isEmpty {
+        // 2. File URL
+        if let str = pb.string(forType: .fileURL), !str.isEmpty {
+            ClipboardHistory.shared.add(ClipItem(
+                id: UUID(), type: .fileURL,
+                stringValue: str, imageData: nil, timestamp: Date()
+            ))
+            return
+        }
+
+        // 3. Plain text — always preferred over rich formats for clean display
+        if let str = pb.string(forType: .string), !str.isEmpty {
+            ClipboardHistory.shared.add(ClipItem(
+                id: UUID(), type: .string,
+                stringValue: str, imageData: nil, timestamp: Date()
+            ))
+            return
+        }
+
+        // 4. RTF — extract plain text so no markup code is shown
+        if let data = pb.data(forType: .rtf),
+           let attrStr = try? NSAttributedString(
+               data: data,
+               options: [.documentType: NSAttributedString.DocumentType.rtf],
+               documentAttributes: nil
+           ) {
+            let plain = attrStr.string.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !plain.isEmpty {
                 ClipboardHistory.shared.add(ClipItem(
-                    id: UUID(), type: clipType,
-                    stringValue: str, imageData: nil, timestamp: Date()
+                    id: UUID(), type: .string,
+                    stringValue: plain, imageData: nil, timestamp: Date()
                 ))
                 return
+            }
+        }
+
+        // 5. HTML — extract plain text so no markup code is shown
+        if let data = pb.data(forType: .html),
+           let attrStr = try? NSAttributedString(
+               data: data,
+               options: [.documentType: NSAttributedString.DocumentType.html],
+               documentAttributes: nil
+           ) {
+            let plain = attrStr.string.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !plain.isEmpty {
+                ClipboardHistory.shared.add(ClipItem(
+                    id: UUID(), type: .string,
+                    stringValue: plain, imageData: nil, timestamp: Date()
+                ))
             }
         }
     }
