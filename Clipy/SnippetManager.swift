@@ -78,12 +78,7 @@ final class SnippetManager: ObservableObject {
     }
 
     private func seedSampleData() {
-        var folder = SnippetFolder(name: "My Snippets")
-        folder.snippets = [
-            Snippet(title: "Email sign-off", content: "Best regards,\n[Your Name]"),
-            Snippet(title: "Meeting link", content: "https://meet.example.com/room"),
-        ]
-        folders = [folder]
+        folders = [SnippetFolder(name: "My Snippets")]
         persist()
     }
 }
