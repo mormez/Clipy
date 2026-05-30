@@ -22,7 +22,7 @@ final class PreferencesWindowController: NSWindowController {
 
 private struct PreferencesView: View {
     @ObservedObject private var prefs = Preferences.shared
-    @State private var historyCount: Double = Double(Preferences.shared.maxHistoryItems)
+    @State private var historyCountText: String = "\(Preferences.shared.maxHistoryItems)"
     @State private var excludedText: String = Preferences.shared.excludedBundleIDs.joined(separator: "\n")
 
     var body: some View {
@@ -39,10 +39,16 @@ private struct PreferencesView: View {
             Section("Clipboard History") {
                 HStack {
                     Text("Maximum items:")
-                    Slider(value: $historyCount, in: 10...500, step: 10)
-                    Text("\(Int(historyCount))").monospacedDigit().frame(width: 40, alignment: .trailing)
+                    TextField("", text: $historyCountText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 60)
+                        .multilineTextAlignment(.center)
+                        .onSubmit { applyHistoryCount() }
+                        .onChange(of: historyCountText) { _, _ in applyHistoryCount() }
+                    Text("(1 – 50)")
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
                 }
-                .onChange(of: historyCount) { _, v in prefs.maxHistoryItems = Int(v) }
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)
@@ -58,7 +64,15 @@ private struct PreferencesView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .onAppear { historyCount = Double(prefs.maxHistoryItems) }
+        .onAppear { historyCountText = "\(prefs.maxHistoryItems)" }
+    }
+
+    private func applyHistoryCount() {
+        guard let value = Int(historyCountText) else { return }
+        let clamped = min(max(value, 1), 50)
+        prefs.maxHistoryItems = clamped
+        // Correct the text if it was out of range
+        if clamped != value { historyCountText = "\(clamped)" }
     }
 
     private var excludeTab: some View {

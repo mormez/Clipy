@@ -28,7 +28,7 @@ final class Preferences: ObservableObject {
     }
 
     private init() {
-        maxHistoryItems = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 100
+        maxHistoryItems = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
         mainMenuKeyCode = UInt32(ud.object(forKey: Key.mainMenuKeyCode.rawValue) as? Int ?? kVK_ANSI_V)
         mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
