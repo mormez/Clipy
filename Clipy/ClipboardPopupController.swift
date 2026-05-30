@@ -52,7 +52,8 @@ final class ClipboardPopupController {
     private var currentStyle: HistoryMenuStyle = .alwaysGrouped
 
     // Layout constants
-    private let colW: CGFloat    = 200   // width of each column
+    private let folderColW: CGFloat = 150  // folder list column
+    private let itemColW: CGFloat   = 500  // items column (wider for readable text)
     private let shadowPad: CGFloat = 16
     private let headerH: CGFloat  = 50
     private let folderRowH: CGFloat = 40
@@ -134,7 +135,7 @@ final class ClipboardPopupController {
     private func buildPanel() {
         if panel == nil {
             let p = ClipboardPanel(
-                contentRect: NSRect(x: 0, y: 0, width: colW, height: 100),
+                contentRect: NSRect(x: 0, y: 0, width: folderColW, height: 100),
                 styleMask: [.borderless],
                 backing: .buffered, defer: false
             )
@@ -177,7 +178,7 @@ final class ClipboardPopupController {
 
     private func sizePanel() {
         let hasItems = state.expandedFolderIndex != nil
-        let totalW   = hasItems ? colW * 2 : colW
+        let totalW   = hasItems ? folderColW + itemColW : folderColW
 
         let leftRows  = CGFloat(currentFlatItems.count) * itemRowH
                       + CGFloat(currentFolders.count)   * folderRowH
