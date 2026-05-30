@@ -4,14 +4,12 @@ final class PasteService {
     static let shared = PasteService()
     private init() {}
 
-    // Used by the menu bar — sets clipboard then pastes with a short delay
-    // so the menu has time to close and the previous app regains focus.
+    // Menu-bar paste: capture previous app, set clipboard, re-activate, then paste.
     func paste(item: ClipItem) {
         ClipboardMonitor.shared.pause()
         setClipboard(item: item)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            PasteService.shared.triggerPaste()
-        }
+        let target = NSWorkspace.shared.frontmostApplication
+        activateThenPaste(target)
     }
 
     func pasteString(_ string: String) {
@@ -19,13 +17,11 @@ final class PasteService {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(string, forType: .string)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            PasteService.shared.triggerPaste()
-        }
+        let target = NSWorkspace.shared.frontmostApplication
+        activateThenPaste(target)
     }
 
-    // Called by ClipboardPopupController after it has already re-activated
-    // the target app — no extra delay needed here.
+    // Used by ClipboardPopupController which handles its own activation timing.
     func setClipboard(item: ClipItem) {
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -47,6 +43,40 @@ final class PasteService {
         case .fileURL:
             if let s = item.stringValue, let url = URL(string: s) {
                 pb.writeObjects([url as NSURL])
+            }
+        }
+    }
+
+    // Wait for the target app to become frontmost, then send Cmd+V.
+    private func activateThenPaste(_ target: NSRunningApplication?) {
+        var observer: NSObjectProtocol?
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil, queue: .main
+        ) { [weak self] note in
+            let activated = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard activated?.bundleIdentifier == target?.bundleIdentifier ||
+                  activated?.processIdentifier == target?.processIdentifier else { return }
+            if let o = observer {
+                NSWorkspace.shared.notificationCenter.removeObserver(o)
+                observer = nil
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self?.triggerPaste()
+            }
+        }
+
+        // Give the menu time to fully close, then activate target.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            target?.activate(options: .activateIgnoringOtherApps)
+        }
+
+        // Safety fallback — if notification never fires (e.g. target IS already front)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            if let o = observer {
+                NSWorkspace.shared.notificationCenter.removeObserver(o)
+                observer = nil
+                self.triggerPaste()
             }
         }
     }

@@ -83,6 +83,10 @@ final class MenuBarManager: NSObject {
         }
 
         // --- Actions ---
+        let diagItem = NSMenuItem(title: "🔍 Test Accessibility…", action: #selector(testAccessibility), keyEquivalent: "")
+        diagItem.target = self
+        menu.addItem(diagItem)
+
         let clear = NSMenuItem(title: "Clear History", action: #selector(clearHistory), keyEquivalent: "")
         clear.target = self
         menu.addItem(clear)
@@ -121,6 +125,24 @@ final class MenuBarManager: NSObject {
     @objc private func pasteSnippet(_ sender: NSMenuItem) {
         guard let snippet = sender.representedObject as? Snippet else { return }
         PasteService.shared.pasteString(snippet.content)
+    }
+
+    @objc private func testAccessibility() {
+        let trusted = AXIsProcessTrustedWithOptions(nil)
+        let alert = NSAlert()
+        alert.messageText = trusted ? "✅ Accessibility Granted" : "❌ Accessibility NOT Granted"
+        alert.informativeText = trusted
+            ? "Accessibility is working. If paste still fails, try clicking a history item now."
+            : "Accessibility permission is not granted to this build of ModernClipy.\n\nGo to System Settings → Privacy & Security → Accessibility, remove ModernClipy if present, then relaunch the app and grant permission again."
+        alert.addButton(withTitle: "OK")
+        if !trusted {
+            alert.addButton(withTitle: "Open System Settings")
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        let response = alert.runModal()
+        if response == .alertSecondButtonReturn {
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+        }
     }
 
     @objc private func clearHistory() {
