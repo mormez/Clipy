@@ -52,13 +52,6 @@ final class PasteService {
     }
 
     func triggerPaste() {
-        // If not trusted, open System Settings and bail — silent failure
-        // is confusing; at least show the user where to fix it.
-        guard AXIsProcessTrustedWithOptions(nil) else {
-            let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-            AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
-            return
-        }
         let src = CGEventSource(stateID: .combinedSessionState)
         let down = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: true)
         down?.flags = .maskCommand
