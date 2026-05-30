@@ -135,13 +135,9 @@ final class ClipboardPopupController {
         if panel == nil {
             let p = ClipboardPanel(
                 contentRect: NSRect(x: 0, y: 0, width: colW, height: 100),
-                styleMask: [.titled, .fullSizeContentView],
+                styleMask: [.borderless],
                 backing: .buffered, defer: false
             )
-            p.titleVisibility = .hidden; p.titlebarAppearsTransparent = true
-            p.standardWindowButton(.closeButton)?.isHidden = true
-            p.standardWindowButton(.miniaturizeButton)?.isHidden = true
-            p.standardWindowButton(.zoomButton)?.isHidden = true
             p.isFloatingPanel = true; p.level = .floating
             p.isOpaque = false; p.backgroundColor = .clear; p.hasShadow = true
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -190,8 +186,9 @@ final class ClipboardPopupController {
             return CGFloat(currentFolders[fi].items.count) * itemRowH
         }()
 
-        let contentH  = headerH + max(leftRows, rightRows)
-        let h         = min(contentH, maxH)
+        let bottomMargin: CGFloat = 12   // breathing room below the last row
+        let contentH = headerH + max(leftRows, rightRows) + bottomMargin
+        let h        = min(contentH, maxH)
         panel?.setContentSize(NSSize(width: totalW, height: h))
     }
 
