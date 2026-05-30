@@ -2,12 +2,17 @@ import AppKit
 import SwiftUI
 import Observation
 
-// MARK: - Folder group
+// MARK: - Data types
 
 struct PopupFolder {
     let label: String
     let items: [ClipItem]
     let startNumber: Int
+}
+
+enum ExpandedPane: Equatable {
+    case clipboard(folderIndex: Int)
+    case snippet(folderIndex: Int)
 }
 
 // MARK: - State
@@ -16,12 +21,12 @@ struct PopupFolder {
 final class PopupState {
     var items: [ClipItem] = []
     var hoverEnabled = false
-    var selectedFolderIndex: Int = 0
-    var expandedFolderIndex: Int? = nil
+    var selectedRowIndex: Int = 0     // across all rows in the folder panel
+    var expandedPane: ExpandedPane? = nil
     var selectedItemIndex: Int = 0
 }
 
-// MARK: - Panel subclass (key-capable, beep-free)
+// MARK: - Panel subclass
 
 private final class ClipboardPanel: NSPanel {
     var keyDownHandler: ((NSEvent) -> Bool)?
@@ -37,12 +42,8 @@ private final class ClipboardPanel: NSPanel {
 final class ClipboardPopupController {
     static let shared = ClipboardPopupController()
 
-    // Main panel — folder list, stays as key window throughout
     private var panel: ClipboardPanel?
-    // Items panel — separate floating panel, non-activating so
-    // it never steals key-window status from the folder panel
     private var itemPanel: NSPanel?
-
     private var keyMonitor: Any?
     private var mouseMoveMonitor: Any?
     private var resignObserver: NSObjectProtocol?
@@ -53,13 +54,33 @@ final class ClipboardPopupController {
     private var currentFlatItems: [ClipItem] = []
     private var currentStyle: HistoryMenuStyle = .alwaysGrouped
 
-    private let folderColW: CGFloat  = 200
-    private let itemColW: CGFloat    = 600
-    private let headerH: CGFloat     = 50
-    private let folderRowH: CGFloat  = 40
-    private let itemRowH: CGFloat    = 44
+    private let folderColW: CGFloat   = 200
+    private let itemColW: CGFloat     = 600
+    private let headerH: CGFloat      = 50
+    private let folderRowH: CGFloat   = 40
+    private let sectionHeaderH: CGFloat = 28
+    private let itemRowH: CGFloat     = 44
     private let bottomMargin: CGFloat = 12
-    private let maxH: CGFloat        = 600
+    private let maxH: CGFloat         = 600
+
+    // Computed row layout — kept in sync with the folder panel view
+    private var flatCount: Int     { currentFlatItems.count }
+    private var clipCount: Int     { currentFolders.count }
+    private var snippetFolders: [SnippetFolder] { SnippetManager.shared.folders }
+    private var snippetCount: Int  { snippetFolders.count }
+    private var totalRows: Int     { flatCount + clipCount + snippetCount }
+
+    private func rowKind(_ row: Int) -> RowKind {
+        if row < flatCount                        { return .flatItem(row) }
+        if row < flatCount + clipCount            { return .clipFolder(row - flatCount) }
+        return .snippetFolder(row - flatCount - clipCount)
+    }
+
+    private enum RowKind {
+        case flatItem(Int)
+        case clipFolder(Int)
+        case snippetFolder(Int)
+    }
 
     private init() {}
 
@@ -74,9 +95,9 @@ final class ClipboardPopupController {
         currentStyle = Preferences.shared.historyMenuStyle
         (currentFlatItems, currentFolders) = computeGroups(items: state.items, style: currentStyle)
 
-        state.selectedFolderIndex = 0
-        state.expandedFolderIndex = nil
-        state.selectedItemIndex   = 0
+        state.selectedRowIndex = 0
+        state.expandedPane     = nil
+        state.selectedItemIndex = 0
 
         buildFolderPanel()
         sizeFolderPanel()
@@ -142,11 +163,8 @@ final class ClipboardPopupController {
                 contentRect: NSRect(x: 0, y: 0, width: folderColW, height: 100),
                 styleMask: [.borderless], backing: .buffered, defer: false
             )
-            p.isFloatingPanel = true
-            p.level = .floating
-            p.isOpaque = false
-            p.backgroundColor = .clear
-            p.hasShadow = true
+            p.isFloatingPanel = true; p.level = .floating
+            p.isOpaque = false; p.backgroundColor = .clear; p.hasShadow = true
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             p.keyDownHandler = { [weak self] event in
                 guard let self else { return false }
@@ -154,90 +172,122 @@ final class ClipboardPopupController {
             }
             panel = p
         }
-        panel?.contentView = NSHostingView(rootView: folderView())
+        panel?.contentView = NSHostingView(rootView: makeFolderView())
     }
 
-    private func folderView() -> FolderPanelView {
+    private func makeFolderView() -> FolderPanelView {
         FolderPanelView(
             state: state,
             style: currentStyle,
             flatItems: currentFlatItems,
-            folders: currentFolders,
-            onSelectItem:   { [weak self] item in self?.paste(item) },
-            onExpandFolder: { [weak self] fi in self?.openFolder(fi) }
+            clipFolders: currentFolders,
+            snippetFolders: snippetFolders,
+            onSelectFlatItem: { [weak self] item in self?.pasteItem(item) },
+            onSelectClipFolder: { [weak self] fi in self?.openClipFolder(fi) },
+            onSelectSnippetFolder: { [weak self] si in self?.openSnippetFolder(si) }
         )
     }
 
     private func sizeFolderPanel() {
-        let rows = CGFloat(currentFlatItems.count) * itemRowH
-                 + CGFloat(currentFolders.count)   * folderRowH
-        let h = min(headerH + rows + bottomMargin, maxH)
-        panel?.setContentSize(NSSize(width: folderColW, height: h))
+        var h: CGFloat = headerH
+        h += CGFloat(flatCount)  * itemRowH
+        h += CGFloat(clipCount)  * folderRowH
+        if snippetCount > 0 {
+            h += sectionHeaderH  // "Snippets" label
+            h += CGFloat(snippetCount) * folderRowH
+        }
+        h += bottomMargin
+        panel?.setContentSize(NSSize(width: folderColW, height: min(h, maxH)))
     }
 
     private func positionFolderPanel() {
         guard let panel, let screen = NSScreen.main else { return }
-        let sf  = screen.visibleFrame
-        let pf  = panel.frame
-        var x   = NSEvent.mouseLocation.x - pf.width / 2
-        var y   = NSEvent.mouseLocation.y - pf.height - 8
+        let sf = screen.visibleFrame
+        let pf = panel.frame
+        var x = NSEvent.mouseLocation.x - pf.width / 2
+        var y = NSEvent.mouseLocation.y - pf.height - 8
         if y < sf.minY + 8 { y = NSEvent.mouseLocation.y + 8 }
         x = max(sf.minX + 8, min(x, sf.maxX - pf.width - 8))
         y = max(sf.minY + 8, min(y, sf.maxY - pf.height - 8))
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
-    // MARK: - Items panel
+    private func refreshFolderPanel() {
+        panel?.contentView = NSHostingView(rootView: makeFolderView())
+    }
 
-    private func openFolder(_ fi: Int) {
+    // MARK: - Items panel (shared for clipboard items and snippets)
+
+    private func openClipFolder(_ fi: Int) {
         guard fi < currentFolders.count else { return }
-        state.expandedFolderIndex = fi
-        state.selectedItemIndex   = 0
-        showItemPanel(for: fi)
-        // Refresh folder view so selected folder stays highlighted
-        panel?.contentView = NSHostingView(rootView: folderView())
-    }
-
-    private func closeFolder() {
-        state.expandedFolderIndex = nil
-        hideItemPanel()
-        // Refresh folder view to clear the highlight on the folder
-        panel?.contentView = NSHostingView(rootView: folderView())
-    }
-
-    private func showItemPanel(for fi: Int) {
+        state.expandedPane     = .clipboard(folderIndex: fi)
+        state.selectedItemIndex = 0
         let folder = currentFolders[fi]
+        showItemPanel(
+            title: folder.label,
+            count: folder.items.count,
+            builder: {
+                ItemsPanelView(
+                    state: self.state,
+                    title: folder.label,
+                    rows: folder.items.enumerated().map { i, item in
+                        ItemRow(number: folder.startNumber + i, title: item.displayTitle,
+                                icon: item.type == .fileURL ? "folder" : "doc.text",
+                                thumbnailImage: item.thumbnailImage)
+                    },
+                    onSelectRow: { [weak self] i in
+                        if i < folder.items.count { self?.pasteItem(folder.items[i]) }
+                    }
+                )
+            }
+        )
+        refreshFolderPanel()
+    }
 
-        // Build panel once, reuse across folders
+    private func openSnippetFolder(_ si: Int) {
+        guard si < snippetFolders.count else { return }
+        state.expandedPane     = .snippet(folderIndex: si)
+        state.selectedItemIndex = 0
+        let folder = snippetFolders[si]
+        showItemPanel(
+            title: folder.name,
+            count: folder.snippets.count,
+            builder: {
+                ItemsPanelView(
+                    state: self.state,
+                    title: folder.name,
+                    rows: folder.snippets.enumerated().map { i, snippet in
+                        ItemRow(number: i + 1, title: snippet.title,
+                                icon: "text.quote", thumbnailImage: nil)
+                    },
+                    onSelectRow: { [weak self] i in
+                        if i < folder.snippets.count { self?.pasteSnippet(folder.snippets[i]) }
+                    }
+                )
+            }
+        )
+        refreshFolderPanel()
+    }
+
+    private func closePane() {
+        state.expandedPane = nil
+        hideItemPanel()
+        refreshFolderPanel()
+    }
+
+    private func showItemPanel(title: String, count: Int, builder: () -> ItemsPanelView) {
         if itemPanel == nil {
-            let p = NSPanel(
-                contentRect: .zero,
-                styleMask: [.borderless, .nonactivatingPanel],
-                backing: .buffered, defer: false
-            )
-            p.isFloatingPanel = true
-            p.level = .floating
-            p.isOpaque = false
-            p.backgroundColor = .clear
-            p.hasShadow = true
+            let p = NSPanel(contentRect: .zero,
+                            styleMask: [.borderless, .nonactivatingPanel],
+                            backing: .buffered, defer: false)
+            p.isFloatingPanel = true; p.level = .floating
+            p.isOpaque = false; p.backgroundColor = .clear; p.hasShadow = true
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             itemPanel = p
         }
-
-        // Fresh content for this folder
-        itemPanel?.contentView = NSHostingView(rootView:
-            ItemsPanelView(
-                state: state,
-                folder: folder,
-                onSelectItem: { [weak self] item in self?.paste(item) }
-            )
-        )
-
-        // Size to fit all items in the folder
-        let h = min(headerH + CGFloat(folder.items.count) * itemRowH + bottomMargin, maxH)
+        itemPanel?.contentView = NSHostingView(rootView: builder())
+        let h = min(headerH + CGFloat(count) * itemRowH + bottomMargin, maxH)
         itemPanel?.setContentSize(NSSize(width: itemColW, height: h))
-
-        // Position: right of folder panel, top-aligned
         positionItemPanel()
         itemPanel?.orderFront(nil)
     }
@@ -247,98 +297,36 @@ final class ClipboardPopupController {
         let sf  = screen.visibleFrame
         let pf  = panel.frame
         let ipf = itemPanel.frame
-
-        // Default: to the right, top-aligned with folder panel
-        var x = pf.maxX
-        var y = pf.maxY - ipf.height
-
-        // If it goes off the right edge, show to the left instead
+        var x   = pf.maxX
+        var y   = pf.maxY - ipf.height
         if x + ipf.width > sf.maxX - 8 { x = pf.minX - ipf.width }
-        // Vertical clamp
         y = max(sf.minY + 8, min(y, sf.maxY - ipf.height - 8))
         x = max(sf.minX + 8, x)
-
         itemPanel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
-    private func hideItemPanel() {
-        itemPanel?.orderOut(nil)
-    }
-
-    // MARK: - Keyboard
-
-    private var isFlatMode: Bool {
-        currentStyle == .flatWhenFew && !currentFlatItems.isEmpty && currentFolders.isEmpty
-    }
-
-    private func handle(_ event: NSEvent) -> NSEvent? {
-        if isFlatMode                          { return handleFlat(event) }
-        if state.expandedFolderIndex != nil    { return handleItemLevel(event) }
-        return handleFolderLevel(event)
-    }
-
-    private func handleFlat(_ event: NSEvent) -> NSEvent? {
-        let n = currentFlatItems.count
-        switch event.keyCode {
-        case 125: state.selectedFolderIndex = min(state.selectedFolderIndex + 1, n - 1); return nil
-        case 126: state.selectedFolderIndex = max(state.selectedFolderIndex - 1, 0);     return nil
-        case 36, 76:
-            if state.selectedFolderIndex < n { paste(currentFlatItems[state.selectedFolderIndex]) }
-            return nil
-        case 53: hide(); return nil
-        default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < n {
-                paste(currentFlatItems[d-1]); return nil
-            }
-            return event
-        }
-    }
-
-    private func handleFolderLevel(_ event: NSEvent) -> NSEvent? {
-        let flatN  = currentFlatItems.count
-        let totalN = flatN + currentFolders.count
-        switch event.keyCode {
-        case 125: state.selectedFolderIndex = min(state.selectedFolderIndex + 1, totalN - 1); return nil
-        case 126: state.selectedFolderIndex = max(state.selectedFolderIndex - 1, 0);          return nil
-        case 124, 36, 76:
-            let row = state.selectedFolderIndex
-            if row < flatN { paste(currentFlatItems[row]) }
-            else           { openFolder(row - flatN) }
-            return nil
-        case 53: hide(); return nil
-        default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < flatN {
-                paste(currentFlatItems[d-1]); return nil
-            }
-            return event
-        }
-    }
-
-    private func handleItemLevel(_ event: NSEvent) -> NSEvent? {
-        guard let fi = state.expandedFolderIndex, fi < currentFolders.count else { return event }
-        let folderItems = currentFolders[fi].items
-        switch event.keyCode {
-        case 125: state.selectedItemIndex = min(state.selectedItemIndex + 1, folderItems.count - 1); return nil
-        case 126: state.selectedItemIndex = max(state.selectedItemIndex - 1, 0);                     return nil
-        case 123, 53: closeFolder(); return nil   // ← or Esc
-        case 36, 76:
-            if state.selectedItemIndex < folderItems.count { paste(folderItems[state.selectedItemIndex]) }
-            return nil
-        default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < folderItems.count {
-                paste(folderItems[d-1]); return nil
-            }
-            return event
-        }
-    }
+    private func hideItemPanel() { itemPanel?.orderOut(nil) }
 
     // MARK: - Paste
 
-    func paste(_ item: ClipItem) {
+    private func pasteItem(_ item: ClipItem) {
         let app = previousApp
         hide()
         ClipboardMonitor.shared.pause()
         PasteService.shared.setClipboard(item: item)
+        activateThenPaste(app)
+    }
+
+    private func pasteSnippet(_ snippet: Snippet) {
+        let app = previousApp
+        hide()
+        ClipboardMonitor.shared.pause()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(snippet.content, forType: .string)
+        activateThenPaste(app)
+    }
+
+    private func activateThenPaste(_ app: NSRunningApplication?) {
         var observer: NSObjectProtocol?
         observer = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
@@ -360,6 +348,95 @@ final class ClipboardPopupController {
             }
         }
     }
+
+    // MARK: - Keyboard
+
+    private var isFlatMode: Bool {
+        currentStyle == .flatWhenFew && !currentFlatItems.isEmpty && currentFolders.isEmpty
+    }
+
+    private func handle(_ event: NSEvent) -> NSEvent? {
+        if isFlatMode               { return handleFlat(event) }
+        if state.expandedPane != nil { return handleItemLevel(event) }
+        return handleFolderLevel(event)
+    }
+
+    private func handleFlat(_ event: NSEvent) -> NSEvent? {
+        let n = currentFlatItems.count
+        switch event.keyCode {
+        case 125: state.selectedRowIndex = min(state.selectedRowIndex + 1, n - 1); return nil
+        case 126: state.selectedRowIndex = max(state.selectedRowIndex - 1, 0);     return nil
+        case 36, 76:
+            if state.selectedRowIndex < n { pasteItem(currentFlatItems[state.selectedRowIndex]) }
+            return nil
+        case 53: hide(); return nil
+        default:
+            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < n {
+                pasteItem(currentFlatItems[d-1]); return nil
+            }
+            return event
+        }
+    }
+
+    private func handleFolderLevel(_ event: NSEvent) -> NSEvent? {
+        switch event.keyCode {
+        case 125:
+            state.selectedRowIndex = min(state.selectedRowIndex + 1, totalRows - 1); return nil
+        case 126:
+            state.selectedRowIndex = max(state.selectedRowIndex - 1, 0);             return nil
+        case 124, 36, 76:   // → or Enter
+            switch rowKind(state.selectedRowIndex) {
+            case .flatItem(let i):       pasteItem(currentFlatItems[i])
+            case .clipFolder(let fi):    openClipFolder(fi)
+            case .snippetFolder(let si): openSnippetFolder(si)
+            }
+            return nil
+        case 53: hide(); return nil
+        default:
+            if let ch = event.characters, let d = Int(ch), (1...9).contains(d) {
+                let fi = d - 1
+                if fi < flatCount { pasteItem(currentFlatItems[fi]); return nil }
+            }
+            return event
+        }
+    }
+
+    private func handleItemLevel(_ event: NSEvent) -> NSEvent? {
+        let itemCount: Int = {
+            switch state.expandedPane {
+            case .clipboard(let fi): return fi < currentFolders.count ? currentFolders[fi].items.count : 0
+            case .snippet(let si):   return si < snippetFolders.count ? snippetFolders[si].snippets.count : 0
+            case nil: return 0
+            }
+        }()
+
+        switch event.keyCode {
+        case 125: state.selectedItemIndex = min(state.selectedItemIndex + 1, itemCount - 1); return nil
+        case 126: state.selectedItemIndex = max(state.selectedItemIndex - 1, 0);             return nil
+        case 123, 53: closePane(); return nil   // ← or Esc
+        case 36, 76:
+            guard state.selectedItemIndex < itemCount else { return nil }
+            switch state.expandedPane {
+            case .clipboard(let fi):
+                pasteItem(currentFolders[fi].items[state.selectedItemIndex])
+            case .snippet(let si):
+                pasteSnippet(snippetFolders[si].snippets[state.selectedItemIndex])
+            case nil: break
+            }
+            return nil
+        default:
+            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < itemCount {
+                let i = d - 1
+                switch state.expandedPane {
+                case .clipboard(let fi): pasteItem(currentFolders[fi].items[i])
+                case .snippet(let si):   pasteSnippet(snippetFolders[si].snippets[i])
+                case nil: break
+                }
+                return nil
+            }
+            return event
+        }
+    }
 }
 
 // MARK: - Folder panel view
@@ -368,13 +445,15 @@ struct FolderPanelView: View {
     var state: PopupState
     let style: HistoryMenuStyle
     let flatItems: [ClipItem]
-    let folders: [PopupFolder]
-    let onSelectItem: (ClipItem) -> Void
-    let onExpandFolder: (Int) -> Void
+    let clipFolders: [PopupFolder]
+    let snippetFolders: [SnippetFolder]
+    let onSelectFlatItem: (ClipItem) -> Void
+    let onSelectClipFolder: (Int) -> Void
+    let onSelectSnippetFolder: (Int) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // ── Header ──
             HStack(spacing: 6) {
                 if let img = NSImage(named: "MenuBarIcon") {
                     Image(nsImage: img).resizable().scaledToFit().frame(width: 16, height: 16)
@@ -387,31 +466,59 @@ struct FolderPanelView: View {
 
             Divider()
 
-            // Flat items (hybrid)
+            // ── Flat clipboard items (hybrid style) ──
             ForEach(Array(flatItems.enumerated()), id: \.element.id) { i, item in
                 PopupItemRow(
                     item: item, number: i + 1,
-                    isSelected: state.expandedFolderIndex == nil && state.selectedFolderIndex == i,
+                    isSelected: state.expandedPane == nil && state.selectedRowIndex == i,
                     hoverEnabled: state.hoverEnabled,
-                    onSelect: { onSelectItem(item) },
-                    onHover: { if $0 { state.selectedFolderIndex = i } }
+                    onSelect: { onSelectFlatItem(item) },
+                    onHover: { if $0 { state.selectedRowIndex = i } }
                 )
                 Divider().padding(.leading, 10)
             }
 
-            // Folders
-            ForEach(Array(folders.enumerated()), id: \.offset) { fi, folder in
-                let rowIndex = flatItems.count + fi
-                let isOpen   = state.expandedFolderIndex == fi
+            // ── Clipboard folders ──
+            ForEach(Array(clipFolders.enumerated()), id: \.offset) { fi, folder in
+                let row = flatItems.count + fi
                 PopupFolderRow(
                     label: folder.label,
                     count: folder.items.count,
-                    isSelected: state.selectedFolderIndex == rowIndex || isOpen,
+                    isSelected: state.selectedRowIndex == row || state.expandedPane == .clipboard(folderIndex: fi),
                     hoverEnabled: state.hoverEnabled,
-                    onSelect: { onExpandFolder(fi) },
-                    onHover: { if $0 { state.selectedFolderIndex = rowIndex } }
+                    onSelect: { onSelectClipFolder(fi) },
+                    onHover: { if $0 { state.selectedRowIndex = row } }
                 )
-                if fi < folders.count - 1 { Divider().padding(.leading, 10) }
+                if fi < clipFolders.count - 1 { Divider().padding(.leading, 10) }
+            }
+
+            // ── Snippets section ──
+            if !snippetFolders.isEmpty {
+                Divider()
+
+                // Section header
+                HStack {
+                    Text("Snippets")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.primary.opacity(0.03))
+
+                ForEach(Array(snippetFolders.enumerated()), id: \.element.id) { si, folder in
+                    let row = flatItems.count + clipFolders.count + si
+                    PopupFolderRow(
+                        label: folder.name,
+                        count: folder.snippets.count,
+                        isSelected: state.selectedRowIndex == row || state.expandedPane == .snippet(folderIndex: si),
+                        hoverEnabled: state.hoverEnabled,
+                        onSelect: { onSelectSnippetFolder(si) },
+                        onHover: { if $0 { state.selectedRowIndex = row } }
+                    )
+                    if si < snippetFolders.count - 1 { Divider().padding(.leading, 10) }
+                }
             }
         }
         .background(.regularMaterial)
@@ -419,18 +526,25 @@ struct FolderPanelView: View {
     }
 }
 
-// MARK: - Items panel view
+// MARK: - Items panel view (shared for clipboard items and snippets)
+
+struct ItemRow {
+    let number: Int
+    let title: String
+    let icon: String
+    let thumbnailImage: NSImage?
+}
 
 struct ItemsPanelView: View {
     var state: PopupState
-    let folder: PopupFolder
-    let onSelectItem: (ClipItem) -> Void
+    let title: String
+    let rows: [ItemRow]
+    let onSelectRow: (Int) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack(spacing: 6) {
-                Text(folder.label).font(.system(size: 12, weight: .semibold))
+                Text(title).font(.system(size: 12, weight: .semibold))
                 Spacer()
                 Text("⏎ paste  ←  back").font(.system(size: 10)).foregroundStyle(.tertiary)
             }
@@ -439,20 +553,62 @@ struct ItemsPanelView: View {
 
             Divider()
 
-            ForEach(Array(folder.items.enumerated()), id: \.element.id) { i, item in
-                PopupItemRow(
-                    item: item,
-                    number: folder.startNumber + i,
+            ForEach(Array(rows.enumerated()), id: \.offset) { i, row in
+                ItemsRowView(
+                    row: row,
                     isSelected: state.selectedItemIndex == i,
                     hoverEnabled: state.hoverEnabled,
-                    onSelect: { onSelectItem(item) },
+                    onSelect: { onSelectRow(i) },
                     onHover: { if $0 { state.selectedItemIndex = i } }
                 )
-                if i < folder.items.count - 1 { Divider().padding(.leading, 10) }
+                if i < rows.count - 1 { Divider().padding(.leading, 10) }
             }
         }
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+struct ItemsRowView: View {
+    let row: ItemRow
+    let isSelected: Bool
+    let hoverEnabled: Bool
+    let onSelect: () -> Void
+    let onHover: (Bool) -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("\(row.number)")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(.tertiary)
+                .frame(width: 16, alignment: .trailing)
+
+            if let img = row.thumbnailImage {
+                Image(nsImage: img.scaled(to: NSSize(width: 18, height: 18)))
+                    .resizable().scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                    .frame(width: 18, height: 18)
+            } else {
+                Image(systemName: row.icon)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
+            }
+
+            Text(row.title)
+                .font(.system(size: 12))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 44)
+        .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onSelect)
+        .onHover { if hoverEnabled { onHover($0) } }
+        .animation(.easeInOut(duration: 0.08), value: isSelected)
     }
 }
 
@@ -484,7 +640,7 @@ struct PopupFolderRow: View {
     }
 }
 
-// MARK: - Item row
+// MARK: - Clipboard item row (kept for FolderPanelView flat items)
 
 struct PopupItemRow: View {
     let item: ClipItem
@@ -501,10 +657,7 @@ struct PopupItemRow: View {
                 .foregroundStyle(.tertiary)
                 .frame(width: 16, alignment: .trailing)
             typeIcon.frame(width: 18, height: 18)
-            Text(item.displayTitle)
-                .font(.system(size: 12))
-                .lineLimit(1)
-                .truncationMode(.middle)
+            Text(item.displayTitle).font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
             Spacer()
         }
         .padding(.horizontal, 10)
