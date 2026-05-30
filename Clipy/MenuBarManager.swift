@@ -39,12 +39,12 @@ final class MenuBarManager: NSObject {
             e.isEnabled = false
             menu.addItem(e)
         } else {
-            let visible = items.prefix(Preferences.shared.maxHistoryItems)
-            for (i, item) in visible.enumerated() {
+            // Show only the 5 most recent items inline
+            for (i, item) in items.prefix(5).enumerated() {
                 let mi = NSMenuItem(
                     title: "  \(item.displayTitle)",
                     action: #selector(pasteHistoryItem(_:)),
-                    keyEquivalent: i < 9 ? "\(i + 1)" : ""
+                    keyEquivalent: "\(i + 1)"
                 )
                 mi.keyEquivalentModifierMask = []
                 mi.representedObject = item
@@ -53,6 +53,17 @@ final class MenuBarManager: NSObject {
                     mi.image = img.scaled(to: NSSize(width: 24, height: 24))
                 }
                 menu.addItem(mi)
+            }
+
+            // "More…" opens the full popup if there are more than 5 items
+            if items.count > 5 {
+                let more = NSMenuItem(
+                    title: "  Show all \(items.count) items…",
+                    action: #selector(showFullHistory),
+                    keyEquivalent: ""
+                )
+                more.target = self
+                menu.addItem(more)
             }
         }
 
@@ -142,6 +153,15 @@ final class MenuBarManager: NSObject {
         let response = alert.runModal()
         if response == .alertSecondButtonReturn {
             NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+        }
+    }
+
+    @objc private func showFullHistory() {
+        // Close the menu first, then open the popup
+        statusItem.menu = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            ClipboardPopupController.shared.show()
+            self?.buildMenu()   // restore menu for next click
         }
     }
 
