@@ -53,7 +53,14 @@ final class ClipboardPopupController {
         state.selectedIndex = 0
         state.hoverEnabled = false
         let prefs = Preferences.shared
-        state.groupingEnabled = prefs.alwaysGroupInSubfolders || state.items.count > 10
+        switch prefs.historyMenuStyle {
+        case .alwaysGrouped:
+            state.groupingEnabled = true
+        case .flatWhenFew:
+            state.groupingEnabled = state.items.count > 10
+        case .hybridFirstFlat:
+            state.groupingEnabled = true   // popup uses hybrid rendering
+        }
         guard !state.items.isEmpty else { return }
 
         buildPanel()
@@ -296,17 +303,41 @@ struct ClipboardPopupView: View {
         }
     }
 
-    // Grouped list — "1 – 10", "11 – 20" section headers
+    // Grouped/hybrid list with section headers
     private var groupedItemList: some View {
+        let style = Preferences.shared.historyMenuStyle
+        let isHybrid = style == .hybridFirstFlat
+        let flatCount = isHybrid ? min(10, state.items.count) : 0
+        let pagedItems = isHybrid ? Array(state.items.dropFirst(flatCount)) : state.items
         let pageSize = 10
-        let pages = stride(from: 0, to: state.items.count, by: pageSize).map { start in
-            (start: start, items: Array(state.items[start ..< min(start + pageSize, state.items.count)]))
-        }
+
         return VStack(spacing: 0) {
+            // Hybrid: first 10 flat (no section header)
+            if isHybrid && flatCount > 0 {
+                ForEach(Array(state.items.prefix(flatCount).enumerated()), id: \.element.id) { i, item in
+                    PopupItemRow(
+                        item: item,
+                        number: i + 1,
+                        isSelected: state.selectedIndex == i,
+                        hoverEnabled: state.hoverEnabled,
+                        onSelect: { onSelect(item) },
+                        onHover: { if $0 { state.selectedIndex = i } }
+                    )
+                    if i < flatCount - 1 || !pagedItems.isEmpty {
+                        Divider().padding(.leading, 46)
+                    }
+                }
+            }
+
+            // Paged groups (all items for alwaysGrouped, items 11+ for hybrid)
+            let pages = stride(from: 0, to: pagedItems.count, by: pageSize).map { start in
+                (start: start, items: Array(pagedItems[start ..< min(start + pageSize, pagedItems.count)]))
+            }
             ForEach(Array(pages.enumerated()), id: \.offset) { pageIndex, page in
-                // Section header
+                let absStart = flatCount + page.start + 1
+                let absEnd   = flatCount + (pageIndex + 1) * pageSize
                 HStack {
-                    Text("\(page.start + 1) – \(( pageIndex + 1) * pageSize)")
+                    Text("\(absStart) – \(absEnd)")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.tertiary)
                     Spacer()
@@ -316,7 +347,7 @@ struct ClipboardPopupView: View {
                 .background(Color.primary.opacity(0.04))
 
                 ForEach(Array(page.items.enumerated()), id: \.element.id) { i, item in
-                    let absIndex = page.start + i
+                    let absIndex = flatCount + page.start + i
                     PopupItemRow(
                         item: item,
                         number: absIndex + 1,

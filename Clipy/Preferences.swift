@@ -2,6 +2,20 @@ import Foundation
 import Carbon
 import ServiceManagement
 
+enum HistoryMenuStyle: Int, CaseIterable {
+    case alwaysGrouped     = 0   // all items in 1-10, 11-20, … subfolders
+    case hybridFirstFlat   = 1   // first 10 flat, older ones in 11-20, 21-30, … subfolders
+    case flatWhenFew       = 2   // flat when ≤10, subfolders only when >10
+
+    var label: String {
+        switch self {
+        case .alwaysGrouped:   return "Always in subfolders"
+        case .hybridFirstFlat: return "First 10 flat, older in subfolders"
+        case .flatWhenFew:     return "Flat when 10 or fewer"
+        }
+    }
+}
+
 final class Preferences: ObservableObject {
     static let shared = Preferences()
 
@@ -26,8 +40,8 @@ final class Preferences: ObservableObject {
             updateLoginItem()
         }
     }
-    @Published var alwaysGroupInSubfolders: Bool {
-        didSet { set(alwaysGroupInSubfolders, for: .alwaysGroupInSubfolders) }
+    @Published var historyMenuStyle: HistoryMenuStyle {
+        didSet { set(historyMenuStyle.rawValue, for: .historyMenuStyle) }
     }
 
     private init() {
@@ -36,13 +50,21 @@ final class Preferences: ObservableObject {
         mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
         launchAtLogin = ud.bool(forKey: Key.launchAtLogin.rawValue)
-        alwaysGroupInSubfolders = ud.object(forKey: Key.alwaysGroupInSubfolders.rawValue) as? Bool ?? true
+
+        // Migrate from old boolean alwaysGroupInSubfolders if present
+        if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
+            historyMenuStyle = old ? .alwaysGrouped : .flatWhenFew
+            ud.removeObject(forKey: "alwaysGroupInSubfolders")
+        } else {
+            historyMenuStyle = HistoryMenuStyle(rawValue: ud.integer(forKey: Key.historyMenuStyle.rawValue)) ?? .alwaysGrouped
+        }
     }
 
     private let ud = UserDefaults.standard
 
     private enum Key: String {
-        case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers, excludedBundleIDs, launchAtLogin, alwaysGroupInSubfolders
+        case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
+        case excludedBundleIDs, launchAtLogin, historyMenuStyle
     }
 
     private func set(_ value: Any, for key: Key) {
@@ -52,13 +74,8 @@ final class Preferences: ObservableObject {
 
     private func updateLoginItem() {
         do {
-            if launchAtLogin {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-        } catch {
-            // Best-effort; user can set this manually if needed
-        }
+            if launchAtLogin { try SMAppService.mainApp.register() }
+            else             { try SMAppService.mainApp.unregister() }
+        } catch {}
     }
 }

@@ -44,31 +44,30 @@ final class MenuBarManager: NSObject {
             let e = NSMenuItem(title: "  (empty)", action: nil, keyEquivalent: "")
             e.isEnabled = false
             menu.addItem(e)
-        } else if items.count <= 10 && !Preferences.shared.alwaysGroupInSubfolders {
-            // Flat: show items directly when ≤10 and user prefers it
-            for (i, item) in items.enumerated() {
-                let number = i + 1
-                let key    = i < 9 ? "\(number)" : "0"
-                menu.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
-            }
         } else {
-            // Grouped: "1 – 10", "11 – 20", etc.
-            let pageSize = 10
-            let pages = stride(from: 0, to: items.count, by: pageSize).map {
-                Array(items[$0 ..< min($0 + pageSize, items.count)])
-            }
-            for (pageIndex, page) in pages.enumerated() {
-                let start = pageIndex * pageSize + 1
-                let end   = (pageIndex + 1) * pageSize
-                let folder = NSMenuItem(title: "  \(start) – \(end)", action: nil, keyEquivalent: "")
-                let sub = NSMenu()
-                for (i, item) in page.enumerated() {
-                    let number = pageIndex * pageSize + i + 1   // absolute: 1-50
-                    let key    = i < 9 ? "\(i + 1)" : "0"      // per-page shortcut 1-9, 0
-                    sub.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
+            switch Preferences.shared.historyMenuStyle {
+
+            case .flatWhenFew where items.count <= 10:
+                // Flat: all items directly in the menu
+                for (i, item) in items.enumerated() {
+                    let number = i + 1
+                    menu.addItem(makeHistoryItem(item: item, number: number, shortcut: i < 9 ? "\(number)" : "0"))
                 }
-                folder.submenu = sub
-                menu.addItem(folder)
+
+            case .hybridFirstFlat:
+                // First 10 flat, remaining in 11-20, 21-30… subfolders
+                for (i, item) in items.prefix(10).enumerated() {
+                    let number = i + 1
+                    menu.addItem(makeHistoryItem(item: item, number: number, shortcut: i < 9 ? "\(number)" : "0"))
+                }
+                if items.count > 10 {
+                    let rest = Array(items.dropFirst(10))
+                    addPagedSubmenus(rest, startingAt: 11, to: menu)
+                }
+
+            default:
+                // Always grouped: "1 – 10", "11 – 20", etc.
+                addPagedSubmenus(items, startingAt: 1, to: menu)
             }
         }
 
@@ -137,6 +136,27 @@ final class MenuBarManager: NSObject {
     @objc private func pasteSnippet(_ sender: NSMenuItem) {
         guard let snippet = sender.representedObject as? Snippet else { return }
         PasteService.shared.pasteString(snippet.content)
+    }
+
+    /// Adds paged subfolders ("startingAt – startingAt+9", etc.) to `menu`.
+    private func addPagedSubmenus(_ items: [ClipItem], startingAt first: Int, to menu: NSMenu) {
+        let pageSize = 10
+        let pages = stride(from: 0, to: items.count, by: pageSize).map {
+            Array(items[$0 ..< min($0 + pageSize, items.count)])
+        }
+        for (pageIndex, page) in pages.enumerated() {
+            let start = first + pageIndex * pageSize
+            let end   = first + (pageIndex + 1) * pageSize - 1
+            let folder = NSMenuItem(title: "  \(start) – \(end)", action: nil, keyEquivalent: "")
+            let sub = NSMenu()
+            for (i, item) in page.enumerated() {
+                let number = start + i
+                let key    = i < 9 ? "\(i + 1)" : "0"
+                sub.addItem(makeHistoryItem(item: item, number: number, shortcut: key))
+            }
+            folder.submenu = sub
+            menu.addItem(folder)
+        }
     }
 
     private func makeHistoryItem(item: ClipItem, number: Int, shortcut: String) -> NSMenuItem {
