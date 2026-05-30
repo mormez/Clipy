@@ -51,7 +51,7 @@ final class MenuBarManager: NSObject {
             }
             for (pageIndex, page) in pages.enumerated() {
                 let start = pageIndex * pageSize + 1
-                let end   = start + page.count - 1
+                let end   = (pageIndex + 1) * pageSize   // always the full range, e.g. 11-20
                 let folder = NSMenuItem(title: "  \(start) – \(end)", action: nil, keyEquivalent: "")
                 let sub = NSMenu()
                 for (i, item) in page.enumerated() {
