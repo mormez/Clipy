@@ -38,32 +38,29 @@ final class MenuBarManager: NSObject {
             let e = NSMenuItem(title: "  (empty)", action: nil, keyEquivalent: "")
             e.isEnabled = false
             menu.addItem(e)
-        } else {
-            // Show only the 5 most recent items inline
-            for (i, item) in items.prefix(5).enumerated() {
-                let mi = NSMenuItem(
-                    title: "  \(item.displayTitle)",
-                    action: #selector(pasteHistoryItem(_:)),
-                    keyEquivalent: "\(i + 1)"
-                )
-                mi.keyEquivalentModifierMask = []
-                mi.representedObject = item
-                mi.target = self
-                if item.type == .image, let img = item.thumbnailImage {
-                    mi.image = img.scaled(to: NSSize(width: 24, height: 24))
-                }
-                menu.addItem(mi)
+        } else if items.count <= 10 {
+            // 10 or fewer — show inline with number shortcuts
+            for (i, item) in items.enumerated() {
+                menu.addItem(makeHistoryItem(item: item, shortcut: "\(i + 1)"))
             }
-
-            // "More…" opens the full popup if there are more than 5 items
-            if items.count > 5 {
-                let more = NSMenuItem(
-                    title: "  Show all \(items.count) items…",
-                    action: #selector(showFullHistory),
-                    keyEquivalent: ""
-                )
-                more.target = self
-                menu.addItem(more)
+        } else {
+            // Group into submenus of 10: "1 – 10", "11 – 20", etc.
+            let pageSize = 10
+            let pages = stride(from: 0, to: items.count, by: pageSize).map {
+                Array(items[$0 ..< min($0 + pageSize, items.count)])
+            }
+            for (pageIndex, page) in pages.enumerated() {
+                let start = pageIndex * pageSize + 1
+                let end   = start + page.count - 1
+                let folder = NSMenuItem(title: "  \(start) – \(end)", action: nil, keyEquivalent: "")
+                let sub = NSMenu()
+                for (i, item) in page.enumerated() {
+                    // Keep 1-9, use 0 for the 10th item
+                    let key = i < 9 ? "\(i + 1)" : "0"
+                    sub.addItem(makeHistoryItem(item: item, shortcut: key))
+                }
+                folder.submenu = sub
+                menu.addItem(folder)
             }
         }
 
@@ -156,13 +153,19 @@ final class MenuBarManager: NSObject {
         }
     }
 
-    @objc private func showFullHistory() {
-        // Close the menu first, then open the popup
-        statusItem.menu = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            ClipboardPopupController.shared.show()
-            self?.buildMenu()   // restore menu for next click
+    private func makeHistoryItem(item: ClipItem, shortcut: String) -> NSMenuItem {
+        let mi = NSMenuItem(
+            title: "  \(item.displayTitle)",
+            action: #selector(pasteHistoryItem(_:)),
+            keyEquivalent: shortcut
+        )
+        mi.keyEquivalentModifierMask = []
+        mi.representedObject = item
+        mi.target = self
+        if item.type == .image, let img = item.thumbnailImage {
+            mi.image = img.scaled(to: NSSize(width: 24, height: 24))
         }
+        return mi
     }
 
     @objc private func clearHistory() {
