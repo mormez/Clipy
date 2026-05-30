@@ -29,6 +29,7 @@ SOURCES = [
     "ClipItem.swift",
     "ClipboardHistory.swift",
     "ClipboardMonitor.swift",
+    "ClipboardPopupController.swift",
     "PasteService.swift",
     "HotkeyManager.swift",
     "Snippet.swift",

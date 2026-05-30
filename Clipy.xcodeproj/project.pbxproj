@@ -12,17 +12,18 @@
 		A1B2C3D4E5F6020200 /* ClipItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010200 /* ClipItem.swift */; };
 		A1B2C3D4E5F6020300 /* ClipboardHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010300 /* ClipboardHistory.swift */; };
 		A1B2C3D4E5F6020400 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010400 /* ClipboardMonitor.swift */; };
-		A1B2C3D4E5F6020500 /* PasteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010500 /* PasteService.swift */; };
-		A1B2C3D4E5F6020600 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010600 /* HotkeyManager.swift */; };
-		A1B2C3D4E5F6020700 /* Snippet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010700 /* Snippet.swift */; };
-		A1B2C3D4E5F6020800 /* SnippetFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010800 /* SnippetFolder.swift */; };
-		A1B2C3D4E5F6020900 /* SnippetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010900 /* SnippetManager.swift */; };
-		A1B2C3D4E5F6020A00 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010A00 /* Preferences.swift */; };
-		A1B2C3D4E5F6020B00 /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010B00 /* MenuBarManager.swift */; };
-		A1B2C3D4E5F6020C00 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010C00 /* PreferencesWindowController.swift */; };
-		A1B2C3D4E5F6020D00 /* SnippetsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010D00 /* SnippetsEditorWindowController.swift */; };
-		A1B2C3D4E5F6020E00 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010E00 /* Extensions.swift */; };
-		A1B2C3D4E5F6020F00 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010F00 /* Assets.xcassets */; };
+		A1B2C3D4E5F6020500 /* ClipboardPopupController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010500 /* ClipboardPopupController.swift */; };
+		A1B2C3D4E5F6020600 /* PasteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010600 /* PasteService.swift */; };
+		A1B2C3D4E5F6020700 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010700 /* HotkeyManager.swift */; };
+		A1B2C3D4E5F6020800 /* Snippet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010800 /* Snippet.swift */; };
+		A1B2C3D4E5F6020900 /* SnippetFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010900 /* SnippetFolder.swift */; };
+		A1B2C3D4E5F6020A00 /* SnippetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010A00 /* SnippetManager.swift */; };
+		A1B2C3D4E5F6020B00 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010B00 /* Preferences.swift */; };
+		A1B2C3D4E5F6020C00 /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010C00 /* MenuBarManager.swift */; };
+		A1B2C3D4E5F6020D00 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010D00 /* PreferencesWindowController.swift */; };
+		A1B2C3D4E5F6020E00 /* SnippetsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010E00 /* SnippetsEditorWindowController.swift */; };
+		A1B2C3D4E5F6020F00 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010F00 /* Extensions.swift */; };
+		A1B2C3D4E5F6021000 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011000 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,17 +32,18 @@
 		A1B2C3D4E5F6010200 /* ClipItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItem.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6010300 /* ClipboardHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistory.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6010400 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010500 /* PasteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteService.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010600 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010700 /* Snippet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snippet.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010800 /* SnippetFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetFolder.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010900 /* SnippetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetManager.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010A00 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010B00 /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010C00 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010D00 /* SnippetsEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsEditorWindowController.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010E00 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6010F00 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010500 /* ClipboardPopupController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPopupController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010600 /* PasteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010700 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010800 /* Snippet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snippet.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010900 /* SnippetFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetFolder.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010A00 /* SnippetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010B00 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010C00 /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010D00 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010E00 /* SnippetsEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsEditorWindowController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6010F00 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6011000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030100 /* Clipy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; };
 		A1B2C3D4E5F6000300 /* Clipy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +87,7 @@
 				A1B2C3D4E5F6010D00,
 				A1B2C3D4E5F6010E00,
 				A1B2C3D4E5F6010F00,
+				A1B2C3D4E5F6011000,
 				A1B2C3D4E5F6030000,
 				A1B2C3D4E5F6030100,
 			);
@@ -156,7 +159,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F6020F00 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F6021000 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,16 +175,17 @@
 				A1B2C3D4E5F6020200 /* ClipItem.swift in Sources */,
 				A1B2C3D4E5F6020300 /* ClipboardHistory.swift in Sources */,
 				A1B2C3D4E5F6020400 /* ClipboardMonitor.swift in Sources */,
-				A1B2C3D4E5F6020500 /* PasteService.swift in Sources */,
-				A1B2C3D4E5F6020600 /* HotkeyManager.swift in Sources */,
-				A1B2C3D4E5F6020700 /* Snippet.swift in Sources */,
-				A1B2C3D4E5F6020800 /* SnippetFolder.swift in Sources */,
-				A1B2C3D4E5F6020900 /* SnippetManager.swift in Sources */,
-				A1B2C3D4E5F6020A00 /* Preferences.swift in Sources */,
-				A1B2C3D4E5F6020B00 /* MenuBarManager.swift in Sources */,
-				A1B2C3D4E5F6020C00 /* PreferencesWindowController.swift in Sources */,
-				A1B2C3D4E5F6020D00 /* SnippetsEditorWindowController.swift in Sources */,
-				A1B2C3D4E5F6020E00 /* Extensions.swift in Sources */,
+				A1B2C3D4E5F6020500 /* ClipboardPopupController.swift in Sources */,
+				A1B2C3D4E5F6020600 /* PasteService.swift in Sources */,
+				A1B2C3D4E5F6020700 /* HotkeyManager.swift in Sources */,
+				A1B2C3D4E5F6020800 /* Snippet.swift in Sources */,
+				A1B2C3D4E5F6020900 /* SnippetFolder.swift in Sources */,
+				A1B2C3D4E5F6020A00 /* SnippetManager.swift in Sources */,
+				A1B2C3D4E5F6020B00 /* Preferences.swift in Sources */,
+				A1B2C3D4E5F6020C00 /* MenuBarManager.swift in Sources */,
+				A1B2C3D4E5F6020D00 /* PreferencesWindowController.swift in Sources */,
+				A1B2C3D4E5F6020E00 /* SnippetsEditorWindowController.swift in Sources */,
+				A1B2C3D4E5F6020F00 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

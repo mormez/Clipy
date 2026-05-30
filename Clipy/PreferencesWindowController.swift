@@ -48,7 +48,7 @@ private struct PreferencesView: View {
                 Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)
             }
             Section("Hotkey") {
-                Text("Ctrl + Shift + V — show clipboard history")
+                Text("⇧ ⌘ V — show clipboard history popup")
                     .foregroundStyle(.secondary)
                     .font(.callout)
                 Text("(Hotkey customization coming in a future version)")

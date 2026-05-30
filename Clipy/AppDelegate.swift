@@ -45,8 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenuHotkeyID = HotkeyManager.shared.register(
             keyCode: p.mainMenuKeyCode,
             modifiers: p.mainMenuModifiers
-        ) { [weak self] in
-            self?.menuBarManager?.showMenu()
+        ) {
+            ClipboardPopupController.shared.toggle()
         }
     }
 }
