@@ -189,7 +189,9 @@ final class ClipboardPopupController {
         }()
 
         let bottomMargin: CGFloat = 12   // breathing room below the last row
-        let contentH = headerH + max(leftRows, rightRows) + bottomMargin
+        // Height is always driven by the left (folder) column only.
+        // The right (items) column scrolls within the same height.
+        let contentH = headerH + leftRows + bottomMargin
         let h        = min(contentH, maxH)
         panel?.setContentSize(NSSize(width: totalW, height: h))
     }
