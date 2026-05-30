@@ -191,7 +191,7 @@ final class ClipboardPopupController {
         }()
 
         let contentH  = headerH + max(leftRows, rightRows)
-        let h         = min(contentH + shadowPad, maxH + shadowPad)
+        let h         = min(contentH + shadowPad * 2, maxH + shadowPad * 2)
         panel?.setContentSize(NSSize(width: totalW, height: h))
     }
 
