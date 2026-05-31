@@ -172,7 +172,10 @@ final class ClipboardPopupController {
             }
             panel = p
         }
-        panel?.contentView = NSHostingView(rootView: makeFolderView())
+        let pf = panel?.frame ?? NSRect(x: 0, y: 0, width: folderColW, height: 100)
+        let fh = NSHostingView(rootView: makeFolderView())
+        fh.frame = NSRect(x: 0, y: 0, width: pf.width, height: pf.height)
+        panel?.contentView = fh
     }
 
     private func makeFolderView() -> FolderPanelView {
@@ -213,7 +216,10 @@ final class ClipboardPopupController {
     }
 
     private func refreshFolderPanel() {
-        panel?.contentView = NSHostingView(rootView: makeFolderView())
+        guard let panel else { return }
+        let fh = NSHostingView(rootView: makeFolderView())
+        fh.frame = NSRect(x: 0, y: 0, width: panel.frame.width, height: panel.frame.height)
+        panel.contentView = fh
     }
 
     // MARK: - Items panel (shared for clipboard items and snippets)
@@ -285,8 +291,12 @@ final class ClipboardPopupController {
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             itemPanel = p
         }
-        itemPanel?.contentView = NSHostingView(rootView: builder())
         let h = min(headerH + CGFloat(count) * itemRowH + bottomMargin, maxH)
+        // Build the hosting view with an explicit frame so SwiftUI receives the
+        // correct proposed width and Text rows fill the full panel width.
+        let hosting = NSHostingView(rootView: builder())
+        hosting.frame = NSRect(x: 0, y: 0, width: itemColW, height: h)
+        itemPanel?.contentView = hosting
         itemPanel?.setContentSize(NSSize(width: itemColW, height: h))
         positionItemPanel()
         itemPanel?.orderFront(nil)
