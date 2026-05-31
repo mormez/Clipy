@@ -187,9 +187,37 @@ private struct PreferencesView: View {
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
             .background(Color(NSColor.controlBackgroundColor))
+
+            // Auto-exclude button
+            Button(action: autoExcludePasswordManagers) {
+                Label("Auto-exclude known password managers", systemImage: "lock.shield")
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 10)
+            .padding(.bottom, 4)
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 12)
+    }
+
+    private static let knownPasswordManagers: [String] = [
+        "com.1password.1password",          // 1Password 8
+        "com.agilebits.onepassword7",       // 1Password 7
+        "com.bitwarden.desktop",            // Bitwarden
+        "com.lastpass.lastpassmac",         // LastPass
+        "com.dashlane.Dashlane",            // Dashlane
+        "org.keepassxc.keepassxc",          // KeePassXC
+        "com.pinkymacware.Strongbox",       // Strongbox
+        "com.nordpass.macos",               // NordPass
+        "com.siber.roboform",               // RoboForm
+        "in.sinew.Enpass-Desktop",          // Enpass
+        "com.callpod.keeperdesktop",        // Keeper
+        "me.proton.pass.macos",             // Proton Pass
+    ]
+
+    private func autoExcludePasswordManagers() {
+        let toAdd = Self.knownPasswordManagers.filter { !prefs.excludedBundleIDs.contains($0) }
+        prefs.excludedBundleIDs.append(contentsOf: toAdd)
     }
 
     private func pickApp() {
