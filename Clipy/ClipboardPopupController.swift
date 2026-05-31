@@ -123,10 +123,8 @@ final class ClipboardPopupController {
             return event
         }
 
-        // makeKeyAndOrderFront is enough for the popup — no full app activation needed.
-        // Calling NSApp.activate() was firing applicationDidBecomeActive which called
-        // registerHotkeys() → unregisterAll() mid-show, breaking the hotkey.
         panel?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     func hide() {
