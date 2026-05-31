@@ -21,6 +21,13 @@ final class PreferencesWindowController: NSWindowController {
 
     private override init(window: NSWindow?) { super.init(window: window) }
     required init?(coder: NSCoder) { fatalError() }
+
+    override func showWindow(_ sender: Any?) {
+        // Stop any active hotkey recording before showing, so closing and
+        // reopening Preferences never leaves the hotkey in an unregistered state.
+        NotificationCenter.default.post(name: .stopHotkeyRecording, object: nil)
+        super.showWindow(sender)
+    }
 }
 
 private struct PreferencesView: View {
@@ -359,6 +366,9 @@ struct HotkeyRecorderView: View {
         }
         .buttonStyle(.bordered)
         .onDisappear { stopRecording() }
+        .onReceive(NotificationCenter.default.publisher(for: .stopHotkeyRecording)) { _ in
+            stopRecording()
+        }
     }
 
     private var hotkeyLabel: String { modString(modifiers) + keyString(keyCode) }

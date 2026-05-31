@@ -28,6 +28,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
     }
 
+    // Re-register whenever the app briefly activates (e.g. Preferences opens).
+    // This is a safety net in case the hotkey was lost (e.g. recorder left open).
+    func applicationDidBecomeActive(_ notification: Notification) {
+        registerHotkeys()
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         ClipboardMonitor.shared.stop()
         HotkeyManager.shared.unregisterAll()
