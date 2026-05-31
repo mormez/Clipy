@@ -151,32 +151,51 @@ private struct PreferencesView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 8)
 
-            List {
-                ForEach(prefs.excludedBundleIDs, id: \.self) { bundleID in
-                    HStack {
-                        ExcludedAppRow(bundleID: bundleID)
-                        Spacer()
-                        Button {
-                            removeApp(bundleID)
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.secondary)
-                                .font(.system(size: 15))
+            ScrollView {
+                VStack(spacing: 0) {
+                    if prefs.excludedBundleIDs.isEmpty {
+                        Text("No apps excluded")
+                            .foregroundStyle(.secondary)
+                            .font(.callout)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                    } else {
+                        ForEach(prefs.excludedBundleIDs, id: \.self) { bundleID in
+                            HStack {
+                                ExcludedAppRow(bundleID: bundleID)
+                                Spacer()
+                                Button {
+                                    removeApp(bundleID)
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.system(size: 15))
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.trailing, 8)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                bundleID == selectedExcludedID
+                                    ? Color.accentColor.opacity(0.15)
+                                    : Color.clear
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedExcludedID = (selectedExcludedID == bundleID) ? nil : bundleID
+                            }
+
+                            Divider()
                         }
-                        .buttonStyle(.plain)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedExcludedID = (selectedExcludedID == bundleID) ? nil : bundleID
-                    }
-                    .listRowBackground(
-                        bundleID == selectedExcludedID
-                            ? Color.accentColor.opacity(0.15)
-                            : Color.clear
-                    )
                 }
             }
-            .listStyle(.bordered)
+            .frame(maxWidth: .infinity)
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.3), lineWidth: 0.5))
 
             // + / − toolbar
             Divider()
