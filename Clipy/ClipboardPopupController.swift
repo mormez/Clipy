@@ -172,9 +172,13 @@ final class ClipboardPopupController {
             }
             panel = p
         }
-        let pf = panel?.frame ?? NSRect(x: 0, y: 0, width: folderColW, height: 100)
+        installFolderHostingView()
+    }
+
+    private func installFolderHostingView() {
         let fh = NSHostingView(rootView: makeFolderView())
-        fh.frame = NSRect(x: 0, y: 0, width: pf.width, height: pf.height)
+        fh.sizingOptions = []
+        fh.autoresizingMask = [.width, .height]
         panel?.contentView = fh
     }
 
@@ -216,10 +220,7 @@ final class ClipboardPopupController {
     }
 
     private func refreshFolderPanel() {
-        guard let panel else { return }
-        let fh = NSHostingView(rootView: makeFolderView())
-        fh.frame = NSRect(x: 0, y: 0, width: panel.frame.width, height: panel.frame.height)
-        panel.contentView = fh
+        installFolderHostingView()
     }
 
     // MARK: - Items panel (shared for clipboard items and snippets)
@@ -292,12 +293,14 @@ final class ClipboardPopupController {
             itemPanel = p
         }
         let h = min(headerH + CGFloat(count) * itemRowH + bottomMargin, maxH)
-        // Build the hosting view with an explicit frame so SwiftUI receives the
-        // correct proposed width and Text rows fill the full panel width.
-        let hosting = NSHostingView(rootView: builder())
-        hosting.frame = NSRect(x: 0, y: 0, width: itemColW, height: h)
-        itemPanel?.contentView = hosting
+        // Size the panel FIRST so that when we assign contentView macOS
+        // automatically fills the hosting view to the correct bounds,
+        // giving SwiftUI the right proposed width.
         itemPanel?.setContentSize(NSSize(width: itemColW, height: h))
+        let hosting = NSHostingView(rootView: builder())
+        hosting.sizingOptions = []          // let the panel own the frame
+        hosting.autoresizingMask = [.width, .height]
+        itemPanel?.contentView = hosting    // macOS fills it to panel bounds
         positionItemPanel()
         itemPanel?.orderFront(nil)
     }
