@@ -26,7 +26,7 @@ private struct PreferencesView: View {
     @State private var excludedText: String = Preferences.shared.excludedBundleIDs.joined(separator: "\n")
 
     private let historyOptions   = stride(from: 5, through: 50, by: 5).map { $0 }
-    private let widthOptions     = stride(from: 200, through: 800, by: 50).map { $0 }
+    private let widthOptions     = stride(from: 200, through: 600, by: 50).map { $0 }
 
     var body: some View {
         TabView {
@@ -113,10 +113,14 @@ private struct PreferencesView: View {
         .formStyle(.grouped)
         .padding()
         .onAppear {
-            // If stored value isn't one of our valid options, snap to nearest
+            // Snap to nearest valid option if stored value is outside range
             if !historyOptions.contains(prefs.maxHistoryItems) {
                 let nearest = historyOptions.min(by: { abs($0 - prefs.maxHistoryItems) < abs($1 - prefs.maxHistoryItems) }) ?? 20
                 prefs.maxHistoryItems = nearest
+            }
+            if !widthOptions.contains(prefs.itemsPanelWidth) {
+                let nearest = widthOptions.min(by: { abs($0 - prefs.itemsPanelWidth) < abs($1 - prefs.itemsPanelWidth) }) ?? 400
+                prefs.itemsPanelWidth = nearest
             }
         }
     }
