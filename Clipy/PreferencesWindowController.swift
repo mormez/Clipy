@@ -99,7 +99,7 @@ private struct PreferencesView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(maxWidth: 200)
-                    Button("Restore Default") { prefs.previewLines = 1 }
+                    Button("Restore Default") { prefs.previewLines = 2 }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }

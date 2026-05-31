@@ -57,7 +57,7 @@ final class Preferences: ObservableObject {
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
         launchAtLogin    = ud.bool(forKey: Key.launchAtLogin.rawValue)
         itemsPanelWidth  = ud.object(forKey: Key.itemsPanelWidth.rawValue) as? Int ?? 400
-        previewLines     = ud.object(forKey: Key.previewLines.rawValue) as? Int ?? 1
+        previewLines     = ud.object(forKey: Key.previewLines.rawValue) as? Int ?? 2
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
