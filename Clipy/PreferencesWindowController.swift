@@ -5,7 +5,7 @@ import Carbon
 final class PreferencesWindowController: NSWindowController {
     static let shared: PreferencesWindowController = {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 320),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 520),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -35,7 +35,7 @@ private struct PreferencesView: View {
             excludeTab.tabItem { Label("Exclude Apps", systemImage: "app.badge.minus") }
             aboutTab.tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(width: 480, height: 320)
+        .frame(width: 480, height: 520)
     }
 
     private var generalTab: some View {
