@@ -54,14 +54,15 @@ final class ClipboardPopupController {
     private var currentFlatItems: [ClipItem] = []
     private var currentStyle: HistoryMenuStyle = .alwaysGrouped
 
-    private let folderColW: CGFloat   = 200
-    private var itemColW: CGFloat     { CGFloat(Preferences.shared.itemsPanelWidth) }
-    private let headerH: CGFloat      = 50
-    private let folderRowH: CGFloat   = 40
+    private let folderColW: CGFloat     = 200
+    private var itemColW: CGFloat       { CGFloat(Preferences.shared.itemsPanelWidth) }
+    private let headerH: CGFloat        = 50
+    private let folderRowH: CGFloat     = 40
     private let sectionHeaderH: CGFloat = 28
-    private let itemRowH: CGFloat     = 44
-    private let bottomMargin: CGFloat = 12
-    private let maxH: CGFloat         = 600
+    private let bottomMargin: CGFloat   = 12
+    private let maxH: CGFloat           = 600
+    // Row height scales with preview lines: 24px base + 20px per line
+    private var itemRowH: CGFloat       { CGFloat(24 + 20 * Preferences.shared.previewLines) }
 
     // Computed row layout — kept in sync with the folder panel view
     private var flatCount: Int     { currentFlatItems.count }
@@ -237,6 +238,7 @@ final class ClipboardPopupController {
                 ItemsPanelView(
                     state: self.state,
                     panelWidth: self.itemColW,
+                    previewLines: Preferences.shared.previewLines,
                     title: folder.label,
                     rows: folder.items.enumerated().map { i, item in
                         ItemRow(number: folder.startNumber + i, title: item.displayTitle,
@@ -264,6 +266,7 @@ final class ClipboardPopupController {
                 ItemsPanelView(
                     state: self.state,
                     panelWidth: self.itemColW,
+                    previewLines: Preferences.shared.previewLines,
                     title: folder.name,
                     rows: folder.snippets.enumerated().map { i, snippet in
                         ItemRow(number: i + 1, title: snippet.title,
@@ -584,6 +587,7 @@ struct ItemRow {
 struct ItemsPanelView: View {
     var state: PopupState
     let panelWidth: CGFloat
+    let previewLines: Int
     let title: String
     let rows: [ItemRow]
     let onSelectRow: (Int) -> Void
@@ -603,6 +607,7 @@ struct ItemsPanelView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { i, row in
                 ItemsRowView(
                     row: row,
+                    previewLines: previewLines,
                     isSelected: state.selectedItemIndex == i,
                     hoverEnabled: state.hoverEnabled,
                     onSelect: { onSelectRow(i) },
@@ -611,8 +616,6 @@ struct ItemsPanelView: View {
                 if i < rows.count - 1 { Divider().padding(.leading, 10) }
             }
         }
-        // Use an exact width so SwiftUI gets the right layout regardless of
-        // how the NSHostingView receives its size proposal.
         .frame(width: panelWidth)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -621,17 +624,19 @@ struct ItemsPanelView: View {
 
 struct ItemsRowView: View {
     let row: ItemRow
+    let previewLines: Int
     let isSelected: Bool
     let hoverEnabled: Bool
     let onSelect: () -> Void
     let onHover: (Bool) -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             Text("\(row.number)")
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .foregroundStyle(.tertiary)
                 .frame(width: 16, alignment: .trailing)
+                .padding(.top, 1)
 
             if let img = row.thumbnailImage {
                 Image(nsImage: img.scaled(to: NSSize(width: 18, height: 18)))
@@ -643,17 +648,19 @@ struct ItemsRowView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .frame(width: 18, height: 18)
+                    .padding(.top, 1)
             }
 
             Text(row.title)
                 .font(.system(size: 12))
-                .lineLimit(1)
-                .truncationMode(.middle)
+                .lineLimit(previewLines)
+                .truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity)
         .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)

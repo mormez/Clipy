@@ -46,6 +46,9 @@ final class Preferences: ObservableObject {
     @Published var itemsPanelWidth: Int {
         didSet { set(itemsPanelWidth, for: .itemsPanelWidth) }
     }
+    @Published var previewLines: Int {
+        didSet { set(previewLines, for: .previewLines) }
+    }
 
     private init() {
         maxHistoryItems  = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
@@ -54,6 +57,7 @@ final class Preferences: ObservableObject {
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
         launchAtLogin    = ud.bool(forKey: Key.launchAtLogin.rawValue)
         itemsPanelWidth  = ud.object(forKey: Key.itemsPanelWidth.rawValue) as? Int ?? 400
+        previewLines     = ud.object(forKey: Key.previewLines.rawValue) as? Int ?? 1
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
@@ -68,7 +72,7 @@ final class Preferences: ObservableObject {
 
     private enum Key: String {
         case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
-        case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth
+        case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth, previewLines
     }
 
     private func set(_ value: Any, for key: Key) {

@@ -27,6 +27,7 @@ private struct PreferencesView: View {
 
     private let historyOptions   = stride(from: 5, through: 50, by: 5).map { $0 }
     private let widthOptions     = stride(from: 200, through: 600, by: 50).map { $0 }
+    private let lineOptions      = [1, 2, 3]
 
     var body: some View {
         TabView {
@@ -77,6 +78,19 @@ private struct PreferencesView: View {
                     .pickerStyle(.menu)
                     .frame(maxWidth: 200)
                     Button("Restore Default") { prefs.itemsPanelWidth = 400 }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                }
+
+                HStack {
+                    Picker("Preview lines:", selection: $prefs.previewLines) {
+                        ForEach(lineOptions, id: \.self) { n in
+                            Text(n == 1 ? "1 line" : "\(n) lines").tag(n)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 200)
+                    Button("Restore Default") { prefs.previewLines = 1 }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }
