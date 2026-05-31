@@ -236,6 +236,7 @@ final class ClipboardPopupController {
             builder: {
                 ItemsPanelView(
                     state: self.state,
+                    panelWidth: self.itemColW,
                     title: folder.label,
                     rows: folder.items.enumerated().map { i, item in
                         ItemRow(number: folder.startNumber + i, title: item.displayTitle,
@@ -262,6 +263,7 @@ final class ClipboardPopupController {
             builder: {
                 ItemsPanelView(
                     state: self.state,
+                    panelWidth: self.itemColW,
                     title: folder.name,
                     rows: folder.snippets.enumerated().map { i, snippet in
                         ItemRow(number: i + 1, title: snippet.title,
@@ -581,6 +583,7 @@ struct ItemRow {
 
 struct ItemsPanelView: View {
     var state: PopupState
+    let panelWidth: CGFloat
     let title: String
     let rows: [ItemRow]
     let onSelectRow: (Int) -> Void
@@ -608,7 +611,9 @@ struct ItemsPanelView: View {
                 if i < rows.count - 1 { Divider().padding(.leading, 10) }
             }
         }
-        .frame(maxWidth: .infinity)
+        // Use an exact width so SwiftUI gets the right layout regardless of
+        // how the NSHostingView receives its size proposal.
+        .frame(width: panelWidth)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
