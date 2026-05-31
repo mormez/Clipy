@@ -27,6 +27,8 @@ private struct SnippetsEditorView: View {
     @State private var selectedSnippetID: UUID?
     @State private var showAddFolder = false
     @State private var newFolderName = ""
+    @State private var showRenameFolder = false
+    @State private var renameFolderName = ""
 
     private var selectedFolderIndex: Int? {
         manager.folders.firstIndex { $0.id == selectedFolderID }
@@ -53,6 +55,9 @@ private struct SnippetsEditorView: View {
         .sheet(isPresented: $showAddFolder) {
             addFolderSheet
         }
+        .sheet(isPresented: $showRenameFolder) {
+            renameFolderSheet
+        }
     }
 
     private var folderList: some View {
@@ -60,6 +65,7 @@ private struct SnippetsEditorView: View {
             ForEach(manager.folders) { folder in
                 Label(folder.name, systemImage: "folder")
                     .tag(folder.id)
+                    .gesture(TapGesture(count: 2).onEnded { beginRename() })
             }
             .onMove { manager.moveFolder(from: $0, to: $1) }
         }
@@ -71,12 +77,26 @@ private struct SnippetsEditorView: View {
                 }
             }
             ToolbarItem(placement: .automatic) {
+                Button(action: beginRename) {
+                    Image(systemName: "pencil")
+                }
+                .disabled(selectedFolderID == nil)
+                .help("Rename folder")
+            }
+            ToolbarItem(placement: .automatic) {
                 Button(action: deleteSelectedFolder) {
                     Image(systemName: "minus")
                 }
                 .disabled(selectedFolderID == nil)
             }
         }
+    }
+
+    private func beginRename() {
+        guard let id = selectedFolderID,
+              let folder = manager.folders.first(where: { $0.id == id }) else { return }
+        renameFolderName = folder.name
+        showRenameFolder = true
     }
 
     private func deleteSelectedFolder() {
@@ -106,6 +126,32 @@ private struct SnippetsEditorView: View {
             }
         }
         .padding(24)
+    }
+
+    private var renameFolderSheet: some View {
+        VStack(spacing: 20) {
+            Text("Rename Folder").font(.headline)
+            TextField("Folder name", text: $renameFolderName)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 240)
+                .onSubmit { applyRename() }
+            HStack(spacing: 12) {
+                Button("Cancel") { showRenameFolder = false; renameFolderName = "" }
+                Button("Rename") { applyRename() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(renameFolderName.isEmpty)
+            }
+        }
+        .padding(24)
+    }
+
+    private func applyRename() {
+        guard !renameFolderName.isEmpty,
+              let id = selectedFolderID,
+              let idx = manager.folders.firstIndex(where: { $0.id == id }) else { return }
+        manager.renameFolder(at: idx, name: renameFolderName)
+        renameFolderName = ""
+        showRenameFolder = false
     }
 }
 
