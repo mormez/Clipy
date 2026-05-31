@@ -56,6 +56,14 @@ private struct PreferencesView: View {
             }
 
             Section("Clipboard History") {
+                Picker("Menu style:", selection: $prefs.historyMenuStyle) {
+                    ForEach(HistoryMenuStyle.allCases, id: \.self) { style in
+                        Text(style.label).tag(style)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 320)
+
                 HStack {
                     Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
                         ForEach(historyOptions, id: \.self) { count in
@@ -94,14 +102,6 @@ private struct PreferencesView: View {
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }
-
-                Picker("Menu style:", selection: $prefs.historyMenuStyle) {
-                    ForEach(HistoryMenuStyle.allCases, id: \.self) { style in
-                        Text(style.label).tag(style)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: 320)
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipboard at login", isOn: $prefs.launchAtLogin)
