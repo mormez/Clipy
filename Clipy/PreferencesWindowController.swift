@@ -55,21 +55,31 @@ private struct PreferencesView: View {
             }
 
             Section("Clipboard History") {
-                Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
-                    ForEach(historyOptions, id: \.self) { count in
-                        Text("\(count)").tag(count)
+                HStack {
+                    Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
+                        ForEach(historyOptions, id: \.self) { count in
+                            Text("\(count)").tag(count)
+                        }
                     }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 200)
+                    Button("Restore Default") { prefs.maxHistoryItems = 20 }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                 }
-                .pickerStyle(.menu)
-                .frame(maxWidth: 280)
 
-                Picker("Items popup width:", selection: $prefs.itemsPanelWidth) {
-                    ForEach(widthOptions, id: \.self) { w in
-                        Text("\(w) px").tag(w)
+                HStack {
+                    Picker("Items popup width:", selection: $prefs.itemsPanelWidth) {
+                        ForEach(widthOptions, id: \.self) { w in
+                            Text("\(w) px").tag(w)
+                        }
                     }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 200)
+                    Button("Restore Default") { prefs.itemsPanelWidth = 400 }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                 }
-                .pickerStyle(.menu)
-                .frame(maxWidth: 280)
 
                 Picker("Menu style:", selection: $prefs.historyMenuStyle) {
                     ForEach(HistoryMenuStyle.allCases, id: \.self) { style in
