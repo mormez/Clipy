@@ -199,9 +199,15 @@ private struct PreferencesView: View {
 
             // + toolbar
             Divider()
-            HStack(spacing: 0) {
+            HStack(spacing: 6) {
                 Button { pickApp() } label: {
-                    Image(systemName: "plus").frame(width: 28, height: 24)
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                        Text("Add apps to exclude")
+                            .font(.system(size: 12))
+                    }
+                    .padding(.horizontal, 6)
+                    .frame(height: 24)
                 }
                 .buttonStyle(.plain)
                 Spacer()
