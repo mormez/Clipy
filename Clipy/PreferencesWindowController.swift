@@ -247,7 +247,7 @@ private struct PreferencesView: View {
             }
             Text("Modern Clipboard").font(.largeTitle.bold())
             Text("Version 1.0").foregroundStyle(.secondary)
-            Text("A modern clipboard manager for Apple Silicon Mac")
+            Text("A modern clipboard manager")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             Spacer()
