@@ -551,6 +551,7 @@ struct FolderPanelView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
@@ -594,6 +595,7 @@ struct ItemsPanelView: View {
                 if i < rows.count - 1 { Divider().padding(.leading, 10) }
             }
         }
+        .frame(maxWidth: .infinity)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
