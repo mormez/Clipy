@@ -284,6 +284,23 @@ private struct PreferencesView: View {
             Text("A modern clipboard manager")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
+
+            Divider().padding(.horizontal, 40)
+
+            VStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Text("Developer:").foregroundStyle(.secondary)
+                    Text("Mor Mezrich").fontWeight(.medium)
+                }
+                HStack(spacing: 4) {
+                    Text("Contact:").foregroundStyle(.secondary)
+                    Link("modern.clipboard@gmail.com",
+                         destination: URL(string: "mailto:modern.clipboard@gmail.com")!)
+                        .foregroundStyle(.blue)
+                }
+            }
+            .font(.system(size: 13))
+
             Spacer()
         }
         .padding()
