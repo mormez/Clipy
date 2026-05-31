@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Carbon
+import UniformTypeIdentifiers
 
 final class PreferencesWindowController: NSWindowController {
     static let shared: PreferencesWindowController = {
@@ -24,7 +25,7 @@ final class PreferencesWindowController: NSWindowController {
 
 private struct PreferencesView: View {
     @ObservedObject private var prefs = Preferences.shared
-    @State private var excludedText: String = Preferences.shared.excludedBundleIDs.joined(separator: "\n")
+    @State private var selectedExcludedID: String? = nil
 
     private let historyOptions   = stride(from: 5, through: 50, by: 5).map { $0 }
     private let widthOptions     = stride(from: 200, through: 600, by: 50).map { $0 }
@@ -141,25 +142,71 @@ private struct PreferencesView: View {
     }
 
     private var excludeTab: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Bundle IDs of apps to exclude from clipboard tracking (one per line):")
+        VStack(spacing: 0) {
+            Text("Modern Clipboard won't record content copied from these apps.")
                 .font(.callout)
-            TextEditor(text: $excludedText)
-                .font(.system(.body, design: .monospaced))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .border(Color.gray.opacity(0.4))
-            HStack {
-                Spacer()
-                Button("Save") {
-                    prefs.excludedBundleIDs = excludedText
-                        .components(separatedBy: .newlines)
-                        .map { $0.trimmingCharacters(in: .whitespaces) }
-                        .filter { !$0.isEmpty }
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            List(selection: $selectedExcludedID) {
+                ForEach(prefs.excludedBundleIDs, id: \.self) { bundleID in
+                    ExcludedAppRow(bundleID: bundleID)
+                        .tag(bundleID)
                 }
             }
+            .listStyle(.bordered)
+
+            // + / − toolbar
+            Divider()
+            HStack(spacing: 0) {
+                Button {
+                    pickApp()
+                } label: {
+                    Image(systemName: "plus").frame(width: 28, height: 24)
+                }
+                .buttonStyle(.plain)
+
+                Divider().frame(height: 16)
+
+                Button {
+                    if let id = selectedExcludedID {
+                        prefs.excludedBundleIDs.removeAll { $0 == id }
+                        selectedExcludedID = nil
+                    }
+                } label: {
+                    Image(systemName: "minus").frame(width: 28, height: 24)
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedExcludedID == nil)
+
+                Spacer()
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(Color(NSColor.controlBackgroundColor))
         }
-        .padding()
-        .onAppear { excludedText = prefs.excludedBundleIDs.joined(separator: "\n") }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+    }
+
+    private func pickApp() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose an app to exclude"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [UTType.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls {
+            guard let bundleID = Bundle(url: url)?.bundleIdentifier,
+                  !prefs.excludedBundleIDs.contains(bundleID) else { continue }
+            prefs.excludedBundleIDs.append(bundleID)
+        }
     }
 
     private var aboutTab: some View {
@@ -179,6 +226,41 @@ private struct PreferencesView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Excluded app row
+
+private struct ExcludedAppRow: View {
+    let bundleID: String
+
+    private var appURL: URL? { NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) }
+    private var appName: String {
+        guard let url = appURL, let bundle = Bundle(url: url) else { return bundleID }
+        return bundle.infoDictionary?["CFBundleDisplayName"] as? String
+            ?? bundle.infoDictionary?["CFBundleName"] as? String
+            ?? url.deletingPathExtension().lastPathComponent
+    }
+    private var appIcon: NSImage {
+        guard let url = appURL else {
+            return NSImage(systemSymbolName: "app.dashed", accessibilityDescription: nil) ?? NSImage()
+        }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        icon.size = NSSize(width: 24, height: 24)
+        return icon
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(nsImage: appIcon)
+                .resizable().scaledToFit()
+                .frame(width: 24, height: 24)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(appName).font(.system(size: 13))
+                Text(bundleID).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 
