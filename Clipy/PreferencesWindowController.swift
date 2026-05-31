@@ -153,16 +153,27 @@ private struct PreferencesView: View {
 
             List {
                 ForEach(prefs.excludedBundleIDs, id: \.self) { bundleID in
-                    ExcludedAppRow(bundleID: bundleID)
-                        .listRowBackground(
-                            bundleID == selectedExcludedID
-                                ? Color.accentColor.opacity(0.15)
-                                : Color.clear
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedExcludedID = (selectedExcludedID == bundleID) ? nil : bundleID
+                    HStack {
+                        ExcludedAppRow(bundleID: bundleID)
+                        Spacer()
+                        Button {
+                            removeApp(bundleID)
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.secondary)
+                                .font(.system(size: 15))
                         }
+                        .buttonStyle(.plain)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedExcludedID = (selectedExcludedID == bundleID) ? nil : bundleID
+                    }
+                    .listRowBackground(
+                        bundleID == selectedExcludedID
+                            ? Color.accentColor.opacity(0.15)
+                            : Color.clear
+                    )
                 }
             }
             .listStyle(.bordered)
@@ -170,9 +181,7 @@ private struct PreferencesView: View {
             // + / − toolbar
             Divider()
             HStack(spacing: 0) {
-                Button {
-                    pickApp()
-                } label: {
+                Button { pickApp() } label: {
                     Image(systemName: "plus").frame(width: 28, height: 24)
                 }
                 .buttonStyle(.plain)
@@ -180,11 +189,7 @@ private struct PreferencesView: View {
                 Divider().frame(height: 16)
 
                 Button {
-                    if let id = selectedExcludedID,
-                       let idx = prefs.excludedBundleIDs.firstIndex(of: id) {
-                        prefs.excludedBundleIDs.remove(at: idx)
-                        selectedExcludedID = nil
-                    }
+                    if let id = selectedExcludedID { removeApp(id) }
                 } label: {
                     Image(systemName: "minus").frame(width: 28, height: 24)
                 }
@@ -223,6 +228,12 @@ private struct PreferencesView: View {
         "com.callpod.keeperdesktop",        // Keeper
         "me.proton.pass.macos",             // Proton Pass
     ]
+
+    private func removeApp(_ bundleID: String) {
+        // Full reassignment guarantees @Published triggers a SwiftUI update
+        prefs.excludedBundleIDs = prefs.excludedBundleIDs.filter { $0 != bundleID }
+        if selectedExcludedID == bundleID { selectedExcludedID = nil }
+    }
 
     private func autoExcludePasswordManagers() {
         let toAdd = Self.knownPasswordManagers.filter { !prefs.excludedBundleIDs.contains($0) }
