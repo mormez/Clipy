@@ -14,7 +14,7 @@ final class MenuBarManager: NSObject {
                 btn.image = icon
             } else {
                 // Fallback if asset not found
-                btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Modern Clipy")
+                btn.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Modern Clipboard")
                 btn.image?.isTemplate = true
             }
         }
@@ -112,7 +112,7 @@ final class MenuBarManager: NSObject {
 
         menu.addItem(.separator())
 
-        menu.addItem(NSMenuItem(title: "Quit Modern Clipy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Modern Clipboard", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         statusItem.menu = menu
     }

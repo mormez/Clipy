@@ -10,7 +10,7 @@ final class PreferencesWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Modern Clipy Preferences"
+        window.title = "Modern Clipboard Preferences"
         window.isReleasedWhenClosed = false
         window.center()
         window.contentView = NSHostingView(rootView: PreferencesView())
@@ -71,7 +71,7 @@ private struct PreferencesView: View {
                 .frame(maxWidth: 320)
             }
             Section("Startup") {
-                Toggle("Launch Modern Clipy at login", isOn: $prefs.launchAtLogin)
+                Toggle("Launch Modern Clipboard at login", isOn: $prefs.launchAtLogin)
             }
             Section("Hotkey") {
                 HStack {
@@ -132,7 +132,7 @@ private struct PreferencesView: View {
                     .scaledToFit()
                     .frame(width: 80, height: 80)
             }
-            Text("Modern Clipy").font(.largeTitle.bold())
+            Text("Modern Clipboard").font(.largeTitle.bold())
             Text("Version 1.0").foregroundStyle(.secondary)
             Text("A modern clipboard manager for Apple Silicon Mac")
                 .multilineTextAlignment(.center)
