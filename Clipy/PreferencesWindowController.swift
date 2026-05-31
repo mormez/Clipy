@@ -25,7 +25,7 @@ final class PreferencesWindowController: NSWindowController {
 
 private struct PreferencesView: View {
     @ObservedObject private var prefs = Preferences.shared
-    @State private var selectedExcludedID: String? = nil
+    @State private var selectedExcludedID: String? = nil   // used for row highlight only
 
     private let historyOptions   = stride(from: 5, through: 50, by: 5).map { $0 }
     private let widthOptions     = stride(from: 200, through: 600, by: 50).map { $0 }
@@ -197,24 +197,13 @@ private struct PreferencesView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.3), lineWidth: 0.5))
 
-            // + / − toolbar
+            // + toolbar
             Divider()
             HStack(spacing: 0) {
                 Button { pickApp() } label: {
                     Image(systemName: "plus").frame(width: 28, height: 24)
                 }
                 .buttonStyle(.plain)
-
-                Divider().frame(height: 16)
-
-                Button {
-                    if let id = selectedExcludedID { removeApp(id) }
-                } label: {
-                    Image(systemName: "minus").frame(width: 28, height: 24)
-                }
-                .buttonStyle(.plain)
-                .disabled(selectedExcludedID == nil)
-
                 Spacer()
             }
             .padding(.horizontal, 4)
