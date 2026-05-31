@@ -297,12 +297,42 @@ final class ClipboardPopupController {
         let sf  = screen.visibleFrame
         let pf  = panel.frame
         let ipf = itemPanel.frame
-        var x   = pf.maxX
-        var y   = pf.maxY - ipf.height
+
+        // Align items panel top with the selected row's top edge
+        let rowTop = rowTopScreenY(for: state.selectedRowIndex)
+        var y = rowTop - ipf.height   // origin.y so that frame.maxY == rowTop
+
+        var x = pf.maxX
         if x + ipf.width > sf.maxX - 8 { x = pf.minX - ipf.width }
+
         y = max(sf.minY + 8, min(y, sf.maxY - ipf.height - 8))
         x = max(sf.minX + 8, x)
         itemPanel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    /// Screen Y of the top edge of `rowIndex` inside the folder panel.
+    private func rowTopScreenY(for rowIndex: Int) -> CGFloat {
+        guard let panel else { return 0 }
+        let flatN = currentFlatItems.count
+        let clipN = currentFolders.count
+
+        // Accumulate visual distance from the panel's top down to the row's top
+        var offset: CGFloat = headerH + 1   // header height + divider
+
+        if rowIndex < flatN {
+            offset += CGFloat(rowIndex) * (itemRowH + 1)
+        } else if rowIndex < flatN + clipN {
+            offset += CGFloat(flatN) * (itemRowH + 1)
+            offset += CGFloat(rowIndex - flatN) * (folderRowH + 1)
+        } else {
+            offset += CGFloat(flatN) * (itemRowH + 1)
+            offset += CGFloat(clipN) * (folderRowH + 1)
+            if !snippetFolders.isEmpty { offset += 1 + sectionHeaderH + 1 }
+            offset += CGFloat(rowIndex - flatN - clipN) * (folderRowH + 1)
+        }
+
+        // panel.frame.maxY is the panel's top in screen coords (Y increases upward)
+        return panel.frame.maxY - offset
     }
 
     private func hideItemPanel() { itemPanel?.orderOut(nil) }
