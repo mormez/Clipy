@@ -151,10 +151,18 @@ private struct PreferencesView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 8)
 
-            List(selection: $selectedExcludedID) {
+            List {
                 ForEach(prefs.excludedBundleIDs, id: \.self) { bundleID in
                     ExcludedAppRow(bundleID: bundleID)
-                        .tag(bundleID)
+                        .listRowBackground(
+                            bundleID == selectedExcludedID
+                                ? Color.accentColor.opacity(0.15)
+                                : Color.clear
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedExcludedID = (selectedExcludedID == bundleID) ? nil : bundleID
+                        }
                 }
             }
             .listStyle(.bordered)
@@ -172,8 +180,9 @@ private struct PreferencesView: View {
                 Divider().frame(height: 16)
 
                 Button {
-                    if let id = selectedExcludedID {
-                        prefs.excludedBundleIDs.removeAll { $0 == id }
+                    if let id = selectedExcludedID,
+                       let idx = prefs.excludedBundleIDs.firstIndex(of: id) {
+                        prefs.excludedBundleIDs.remove(at: idx)
                         selectedExcludedID = nil
                     }
                 } label: {
