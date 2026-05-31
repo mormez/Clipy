@@ -403,9 +403,10 @@ struct HotkeyRecorderView: View {
     }
 
     private func stopRecording() {
+        guard isRecording else { return }
         isRecording = false
         if let m = monitor { NSEvent.removeMonitor(m); monitor = nil }
-        // Re-register with (possibly new) hotkey
+        // Re-register with the current hotkey (new or unchanged)
         NotificationCenter.default.post(name: .preferencesChanged, object: nil)
     }
 
