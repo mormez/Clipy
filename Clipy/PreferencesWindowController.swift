@@ -12,6 +12,7 @@ final class PreferencesWindowController: NSWindowController {
         )
         window.title = "Modern Clipboard Preferences"
         window.isReleasedWhenClosed = false
+        window.collectionBehavior = [.moveToActiveSpace]
         window.center()
         window.contentView = NSHostingView(rootView: PreferencesView())
         return PreferencesWindowController(window: window)

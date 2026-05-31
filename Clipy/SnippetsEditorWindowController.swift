@@ -12,6 +12,7 @@ final class SnippetsEditorWindowController: NSWindowController {
         window.title = "Snippets"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 500, height: 380)
+        window.collectionBehavior = [.moveToActiveSpace]
         window.center()
         window.contentView = NSHostingView(rootView: SnippetsEditorView())
         return SnippetsEditorWindowController(window: window)
