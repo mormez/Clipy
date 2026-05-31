@@ -25,7 +25,8 @@ private struct PreferencesView: View {
     @ObservedObject private var prefs = Preferences.shared
     @State private var excludedText: String = Preferences.shared.excludedBundleIDs.joined(separator: "\n")
 
-    private let historyOptions = stride(from: 5, through: 50, by: 5).map { $0 }
+    private let historyOptions   = stride(from: 5, through: 50, by: 5).map { $0 }
+    private let widthOptions     = stride(from: 200, through: 800, by: 50).map { $0 }
 
     var body: some View {
         TabView {
@@ -57,6 +58,14 @@ private struct PreferencesView: View {
                 Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
                     ForEach(historyOptions, id: \.self) { count in
                         Text("\(count)").tag(count)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 280)
+
+                Picker("Items popup width:", selection: $prefs.itemsPanelWidth) {
+                    ForEach(widthOptions, id: \.self) { w in
+                        Text("\(w) px").tag(w)
                     }
                 }
                 .pickerStyle(.menu)

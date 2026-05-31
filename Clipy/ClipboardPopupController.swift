@@ -55,7 +55,7 @@ final class ClipboardPopupController {
     private var currentStyle: HistoryMenuStyle = .alwaysGrouped
 
     private let folderColW: CGFloat   = 200
-    private let itemColW: CGFloat     = 600
+    private var itemColW: CGFloat     { CGFloat(Preferences.shared.itemsPanelWidth) }
     private let headerH: CGFloat      = 50
     private let folderRowH: CGFloat   = 40
     private let sectionHeaderH: CGFloat = 28

@@ -43,13 +43,17 @@ final class Preferences: ObservableObject {
     @Published var historyMenuStyle: HistoryMenuStyle {
         didSet { set(historyMenuStyle.rawValue, for: .historyMenuStyle) }
     }
+    @Published var itemsPanelWidth: Int {
+        didSet { set(itemsPanelWidth, for: .itemsPanelWidth) }
+    }
 
     private init() {
-        maxHistoryItems = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
-        mainMenuKeyCode = UInt32(ud.object(forKey: Key.mainMenuKeyCode.rawValue) as? Int ?? kVK_ANSI_V)
+        maxHistoryItems  = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
+        mainMenuKeyCode  = UInt32(ud.object(forKey: Key.mainMenuKeyCode.rawValue) as? Int ?? kVK_ANSI_V)
         mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (controlKey | shiftKey))
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
-        launchAtLogin = ud.bool(forKey: Key.launchAtLogin.rawValue)
+        launchAtLogin    = ud.bool(forKey: Key.launchAtLogin.rawValue)
+        itemsPanelWidth  = ud.object(forKey: Key.itemsPanelWidth.rawValue) as? Int ?? 400
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
@@ -64,7 +68,7 @@ final class Preferences: ObservableObject {
 
     private enum Key: String {
         case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
-        case excludedBundleIDs, launchAtLogin, historyMenuStyle
+        case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth
     }
 
     private func set(_ value: Any, for key: Key) {
