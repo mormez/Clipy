@@ -125,7 +125,7 @@ private struct PreferencesView: View {
                     )
                     Button("Restore Default") {
                         prefs.mainMenuKeyCode  = UInt32(kVK_ANSI_V)
-                        prefs.mainMenuModifiers = UInt32(controlKey | shiftKey)
+                        prefs.mainMenuModifiers = UInt32(cmdKey | optionKey)
                         NotificationCenter.default.post(name: .preferencesChanged, object: nil)
                     }
                     .buttonStyle(.bordered)
