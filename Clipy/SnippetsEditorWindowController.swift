@@ -67,7 +67,6 @@ private struct SnippetsEditorView: View {
                 ForEach(manager.folders) { folder in
                     Label(folder.name, systemImage: "folder")
                         .tag(folder.id)
-                        .gesture(TapGesture(count: 2).onEnded { beginRename() })
                 }
                 .onMove { manager.moveFolder(from: $0, to: $1) }
             }
