@@ -2,13 +2,12 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarManager: MenuBarManager?
-    private var mainMenuHotkeyID: UInt32 = 0
     private var prefsObserver: NSObjectProtocol?
+    private var hotkeyObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
-        // Warm up singletons
         _ = Preferences.shared
         _ = ClipboardHistory.shared
         _ = SnippetManager.shared
@@ -17,13 +16,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ClipboardMonitor.shared.start()
         registerHotkeys()
 
+        // Rebuild menus when non-hotkey preferences change
         prefsObserver = NotificationCenter.default.addObserver(
             forName: .preferencesChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.menuBarManager?.buildMenu()
+        }
+
+        // Re-register hotkey ONLY when the hotkey preferences change
+        hotkeyObserver = NotificationCenter.default.addObserver(
+            forName: .hotkeyChanged, object: nil, queue: .main) { [weak self] _ in
             self?.registerHotkeys()
         }
 
-        // Register with macOS so the app appears in System Settings → Accessibility.
-        // The user grants permission once; macOS remembers it permanently.
         let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
     }
@@ -40,9 +44,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func registerHotkeys() {
-        HotkeyManager.shared.unregisterAll()
         let p = Preferences.shared
-        mainMenuHotkeyID = HotkeyManager.shared.register(
+        HotkeyManager.shared.register(
             keyCode: p.mainMenuKeyCode,
             modifiers: p.mainMenuModifiers
         ) {

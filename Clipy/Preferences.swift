@@ -26,10 +26,16 @@ final class Preferences: ObservableObject {
         }
     }
     @Published var mainMenuKeyCode: UInt32 {
-        didSet { set(Int(mainMenuKeyCode), for: .mainMenuKeyCode) }
+        didSet {
+            ud.set(Int(mainMenuKeyCode), forKey: Key.mainMenuKeyCode.rawValue)
+            NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
+        }
     }
     @Published var mainMenuModifiers: UInt32 {
-        didSet { set(Int(mainMenuModifiers), for: .mainMenuModifiers) }
+        didSet {
+            ud.set(Int(mainMenuModifiers), forKey: Key.mainMenuModifiers.rawValue)
+            NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
+        }
     }
     @Published var excludedBundleIDs: [String] {
         didSet { set(excludedBundleIDs, for: .excludedBundleIDs) }
@@ -53,7 +59,7 @@ final class Preferences: ObservableObject {
     private init() {
         maxHistoryItems  = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
         mainMenuKeyCode  = UInt32(ud.object(forKey: Key.mainMenuKeyCode.rawValue) as? Int ?? kVK_ANSI_V)
-        mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (cmdKey | optionKey))
+        mainMenuModifiers = UInt32(ud.object(forKey: Key.mainMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
         excludedBundleIDs = ud.stringArray(forKey: Key.excludedBundleIDs.rawValue) ?? []
         launchAtLogin    = ud.bool(forKey: Key.launchAtLogin.rawValue)
         itemsPanelWidth  = ud.object(forKey: Key.itemsPanelWidth.rawValue) as? Int ?? 400

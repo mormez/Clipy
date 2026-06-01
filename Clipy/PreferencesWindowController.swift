@@ -125,7 +125,7 @@ private struct PreferencesView: View {
                     )
                     Button("Restore Default") {
                         prefs.mainMenuKeyCode  = UInt32(kVK_ANSI_V)
-                        prefs.mainMenuModifiers = UInt32(cmdKey | optionKey)
+                        prefs.mainMenuModifiers = UInt32(cmdKey | shiftKey)
                         NotificationCenter.default.post(name: .preferencesChanged, object: nil)
                     }
                     .buttonStyle(.bordered)
@@ -407,7 +407,7 @@ struct HotkeyRecorderView: View {
         isRecording = false
         if let m = monitor { NSEvent.removeMonitor(m); monitor = nil }
         // Re-register with the current hotkey (new or unchanged)
-        NotificationCenter.default.post(name: .preferencesChanged, object: nil)
+        NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
     }
 
     private func modString(_ m: UInt32) -> String {

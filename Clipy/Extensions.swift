@@ -5,6 +5,7 @@ extension Notification.Name {
     static let clipboardHistoryChanged = Notification.Name("com.clipy.historyChanged")
     static let snippetsChanged = Notification.Name("com.clipy.snippetsChanged")
     static let preferencesChanged = Notification.Name("com.clipy.preferencesChanged")
+    static let hotkeyChanged = Notification.Name("com.clipy.hotkeyChanged")
     static let stopHotkeyRecording = Notification.Name("com.clipy.stopHotkeyRecording")
 }
 
