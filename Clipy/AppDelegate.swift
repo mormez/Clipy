@@ -44,12 +44,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func registerHotkeys() {
+        HotkeyManager.shared.unregisterAll()
         let p = Preferences.shared
         HotkeyManager.shared.register(
             keyCode: p.mainMenuKeyCode,
             modifiers: p.mainMenuModifiers
         ) {
             ClipboardPopupController.shared.toggle()
+        }
+        HotkeyManager.shared.register(
+            keyCode: p.snippetsMenuKeyCode,
+            modifiers: p.snippetsMenuModifiers
+        ) {
+            SnippetsPopupController.shared.toggle()
         }
     }
 }

@@ -115,21 +115,28 @@ private struct PreferencesView: View {
             Section("Startup") {
                 Toggle("Launch Modern Clipboard at login", isOn: $prefs.launchAtLogin)
             }
-            Section("Hotkey") {
+            Section("Hotkeys") {
                 HStack {
                     Text("Show history popup:")
                     Spacer()
-                    HotkeyRecorderView(
-                        keyCode: $prefs.mainMenuKeyCode,
-                        modifiers: $prefs.mainMenuModifiers
-                    )
+                    HotkeyRecorderView(keyCode: $prefs.mainMenuKeyCode, modifiers: $prefs.mainMenuModifiers)
                     Button("Restore Default") {
-                        prefs.mainMenuKeyCode  = UInt32(kVK_ANSI_V)
+                        prefs.mainMenuKeyCode   = UInt32(kVK_ANSI_V)
                         prefs.mainMenuModifiers = UInt32(cmdKey | shiftKey)
-                        NotificationCenter.default.post(name: .preferencesChanged, object: nil)
+                        NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(.bordered).controlSize(.small)
+                }
+                HStack {
+                    Text("Show snippets popup:")
+                    Spacer()
+                    HotkeyRecorderView(keyCode: $prefs.snippetsMenuKeyCode, modifiers: $prefs.snippetsMenuModifiers)
+                    Button("Restore Default") {
+                        prefs.snippetsMenuKeyCode   = UInt32(kVK_ANSI_S)
+                        prefs.snippetsMenuModifiers = UInt32(cmdKey | shiftKey)
+                        NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
+                    }
+                    .buttonStyle(.bordered).controlSize(.small)
                 }
             }
         }

@@ -737,3 +737,338 @@ struct PopupItemRow: View {
         }
     }
 }
+
+// MARK: - Snippets popup controller
+
+final class SnippetsPopupController {
+    static let shared = SnippetsPopupController()
+
+    private var panel: ClipboardPanel?
+    private var itemPanel: NSPanel?
+    private var keyMonitor: Any?
+    private var mouseMoveMonitor: Any?
+    private var resignObserver: NSObjectProtocol?
+    private var previousApp: NSRunningApplication?
+
+    // Simple state: which folder row is selected, which folder is open
+    private var selectedFolderIndex: Int = 0
+    private var expandedFolderIndex: Int? = nil
+    private var selectedItemIndex: Int = 0
+    private var hoverEnabled = false
+
+    private let folderColW: CGFloat   = 200
+    private let itemColW: CGFloat     = 400
+    private let headerH: CGFloat      = 50
+    private let folderRowH: CGFloat   = 40
+    private let bottomMargin: CGFloat = 12
+    private let maxH: CGFloat         = 500
+
+    private var folders: [SnippetFolder] { SnippetManager.shared.folders }
+
+    private init() {}
+
+    func toggle() { if panel?.isVisible == true { hide() } else { show() } }
+
+    func show() {
+        guard !folders.isEmpty else { return }
+        previousApp = NSWorkspace.shared.frontmostApplication
+        selectedFolderIndex = 0
+        expandedFolderIndex = nil
+        selectedItemIndex   = 0
+        hoverEnabled = false
+
+        buildPanel()
+        sizePanel()
+        positionPanel()
+
+        resignObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification,
+            object: panel, queue: .main
+        ) { [weak self] _ in self?.hide() }
+
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handle(event) ?? event
+        }
+
+        panel?.acceptsMouseMovedEvents = true
+        mouseMoveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+            guard let self else { return event }
+            self.hoverEnabled = true
+            NSEvent.removeMonitor(self.mouseMoveMonitor as Any)
+            self.mouseMoveMonitor = nil
+            return event
+        }
+
+        panel?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func hide() {
+        if let o = resignObserver { NotificationCenter.default.removeObserver(o); resignObserver = nil }
+        if let m = keyMonitor { NSEvent.removeMonitor(m); keyMonitor = nil }
+        if let m = mouseMoveMonitor { NSEvent.removeMonitor(m); mouseMoveMonitor = nil }
+        itemPanel?.orderOut(nil)
+        panel?.orderOut(nil)
+    }
+
+    // MARK: Panel setup
+
+    private func buildPanel() {
+        if panel == nil {
+            let p = ClipboardPanel(contentRect: NSRect(x: 0, y: 0, width: folderColW, height: 100),
+                                   styleMask: [.borderless], backing: .buffered, defer: false)
+            p.isFloatingPanel = true; p.level = .floating
+            p.isOpaque = false; p.backgroundColor = .clear; p.hasShadow = true
+            p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            p.keyDownHandler = { [weak self] event in
+                guard let self else { return false }
+                return self.handle(event) == nil
+            }
+            panel = p
+        }
+        sizePanel()
+        panel?.contentView = NSHostingView(rootView: makeFolderView())
+    }
+
+    private func makeFolderView() -> SnippetsFolderPanelView {
+        SnippetsFolderPanelView(
+            folders: folders,
+            selectedFolderIndex: selectedFolderIndex,
+            expandedFolderIndex: expandedFolderIndex,
+            hoverEnabled: hoverEnabled,
+            onSelectFolder: { [weak self] fi in self?.openFolder(fi) },
+            onHoverFolder:  { [weak self] fi in self?.selectedFolderIndex = fi }
+        )
+    }
+
+    private func sizePanel() {
+        let h = min(headerH + CGFloat(folders.count) * folderRowH + bottomMargin, maxH)
+        panel?.setContentSize(NSSize(width: folderColW, height: h))
+    }
+
+    private func positionPanel() {
+        guard let panel, let screen = NSScreen.main else { return }
+        let sf = screen.visibleFrame; let pf = panel.frame
+        var x = NSEvent.mouseLocation.x - pf.width / 2
+        var y = NSEvent.mouseLocation.y - pf.height - 8
+        if y < sf.minY + 8 { y = NSEvent.mouseLocation.y + 8 }
+        x = max(sf.minX + 8, min(x, sf.maxX - pf.width - 8))
+        y = max(sf.minY + 8, min(y, sf.maxY - pf.height - 8))
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    // MARK: Items panel
+
+    private func openFolder(_ fi: Int) {
+        guard fi < folders.count else { return }
+        expandedFolderIndex = fi
+        selectedItemIndex   = 0
+        panel?.contentView = NSHostingView(rootView: makeFolderView())
+
+        let folder = folders[fi]
+        if itemPanel == nil {
+            let p = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel],
+                            backing: .buffered, defer: false)
+            p.isFloatingPanel = true; p.level = .floating
+            p.isOpaque = false; p.backgroundColor = .clear; p.hasShadow = true
+            p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            itemPanel = p
+        }
+        itemPanel?.contentView = NSHostingView(rootView: makeItemView(folder: folder, folderIndex: fi))
+        let h = min(headerH + CGFloat(folder.snippets.count) * 44 + bottomMargin, maxH)
+        itemPanel?.setContentSize(NSSize(width: itemColW, height: h))
+        positionItemPanel()
+        itemPanel?.orderFront(nil)
+    }
+
+    private func makeItemView(folder: SnippetFolder, folderIndex: Int) -> SnippetsItemsPanelView {
+        SnippetsItemsPanelView(
+            folder: folder,
+            selectedIndex: selectedItemIndex,
+            hoverEnabled: hoverEnabled,
+            onSelect: { [weak self] i in self?.pasteSnippet(folder.snippets[i]) },
+            onHover:  { [weak self] i in self?.selectedItemIndex = i }
+        )
+    }
+
+    private func positionItemPanel() {
+        guard let panel, let itemPanel, let screen = NSScreen.main else { return }
+        let sf = screen.visibleFrame; let pf = panel.frame; let ipf = itemPanel.frame
+        var x = pf.maxX
+        var y = pf.maxY - ipf.height
+        if x + ipf.width > sf.maxX - 8 { x = pf.minX - ipf.width }
+        y = max(sf.minY + 8, min(y, sf.maxY - ipf.height - 8))
+        x = max(sf.minX + 8, x)
+        itemPanel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    private func closeFolder() {
+        expandedFolderIndex = nil
+        itemPanel?.orderOut(nil)
+        panel?.contentView = NSHostingView(rootView: makeFolderView())
+    }
+
+    // MARK: Keyboard
+
+    private func handle(_ event: NSEvent) -> NSEvent? {
+        if expandedFolderIndex != nil { return handleItemLevel(event) }
+        return handleFolderLevel(event)
+    }
+
+    private func handleFolderLevel(_ event: NSEvent) -> NSEvent? {
+        switch event.keyCode {
+        case 125: selectedFolderIndex = min(selectedFolderIndex + 1, folders.count - 1)
+                  panel?.contentView = NSHostingView(rootView: makeFolderView()); return nil
+        case 126: selectedFolderIndex = max(selectedFolderIndex - 1, 0)
+                  panel?.contentView = NSHostingView(rootView: makeFolderView()); return nil
+        case 124, 36, 76: openFolder(selectedFolderIndex); return nil
+        case 53: hide(); return nil
+        default: return event
+        }
+    }
+
+    private func handleItemLevel(_ event: NSEvent) -> NSEvent? {
+        guard let fi = expandedFolderIndex, fi < folders.count else { return event }
+        let snippets = folders[fi].snippets
+        switch event.keyCode {
+        case 125: selectedItemIndex = min(selectedItemIndex + 1, snippets.count - 1)
+                  itemPanel?.contentView = NSHostingView(rootView: makeItemView(folder: folders[fi], folderIndex: fi)); return nil
+        case 126: selectedItemIndex = max(selectedItemIndex - 1, 0)
+                  itemPanel?.contentView = NSHostingView(rootView: makeItemView(folder: folders[fi], folderIndex: fi)); return nil
+        case 123, 53: closeFolder(); return nil
+        case 36, 76:
+            if selectedItemIndex < snippets.count { pasteSnippet(snippets[selectedItemIndex]) }
+            return nil
+        default:
+            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < snippets.count {
+                pasteSnippet(snippets[d-1]); return nil
+            }
+            return event
+        }
+    }
+
+    // MARK: Paste
+
+    private func pasteSnippet(_ snippet: Snippet) {
+        let app = previousApp
+        hide()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(snippet.content, forType: .string)
+        var observer: NSObjectProtocol?
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil, queue: .main
+        ) { note in
+            let activated = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard activated?.bundleIdentifier == app?.bundleIdentifier ||
+                  activated?.processIdentifier == app?.processIdentifier else { return }
+            NSWorkspace.shared.notificationCenter.removeObserver(observer!)
+            observer = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { PasteService.shared.triggerPaste() }
+        }
+        app?.activate(options: .activateIgnoringOtherApps)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            if let o = observer {
+                NSWorkspace.shared.notificationCenter.removeObserver(o)
+                observer = nil
+                PasteService.shared.triggerPaste()
+            }
+        }
+    }
+}
+
+// MARK: - Snippets folder panel view
+
+struct SnippetsFolderPanelView: View {
+    let folders: [SnippetFolder]
+    let selectedFolderIndex: Int
+    let expandedFolderIndex: Int?
+    let hoverEnabled: Bool
+    let onSelectFolder: (Int) -> Void
+    let onHoverFolder: (Int) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Image(systemName: "text.quote").foregroundStyle(.purple).font(.system(size: 14, weight: .semibold))
+                Text("Snippets").font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text("↑↓ navigate  ·  → open  ·  ⎋ close")
+                    .font(.system(size: 10)).foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 11)
+
+            Divider()
+
+            if folders.isEmpty {
+                Text("No snippets").foregroundStyle(.secondary).padding()
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(folders.enumerated()), id: \.element.id) { fi, folder in
+                        PopupFolderRow(
+                            label: folder.name,
+                            count: folder.snippets.count,
+                            isSelected: selectedFolderIndex == fi || expandedFolderIndex == fi,
+                            hoverEnabled: hoverEnabled,
+                            onSelect: { onSelectFolder(fi) },
+                            onHover: { if $0 { onHoverFolder(fi) } }
+                        )
+                        if fi < folders.count - 1 { Divider().padding(.leading, 10) }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+// MARK: - Snippets items panel view
+
+struct SnippetsItemsPanelView: View {
+    let folder: SnippetFolder
+    let selectedIndex: Int
+    let hoverEnabled: Bool
+    let onSelect: (Int) -> Void
+    let onHover: (Int) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Text(folder.name).font(.system(size: 12, weight: .semibold))
+                Spacer()
+                Text("⏎ paste  ←  back").font(.system(size: 10)).foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 10)
+
+            Divider()
+
+            VStack(spacing: 0) {
+                ForEach(Array(folder.snippets.enumerated()), id: \.element.id) { i, snippet in
+                    HStack(spacing: 8) {
+                        Text("\(i + 1)")
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .foregroundStyle(.tertiary).frame(width: 16, alignment: .trailing)
+                        Image(systemName: "text.quote").font(.system(size: 11)).foregroundStyle(.secondary)
+                            .frame(width: 18)
+                        Text(snippet.title).font(.system(size: 12)).lineLimit(2).truncationMode(.tail)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 8)
+                    .frame(maxWidth: .infinity)
+                    .background(selectedIndex == i ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture { onSelect(i) }
+                    .onHover { flag in if hoverEnabled && flag { onHover(i) } }
+                    .animation(.easeInOut(duration: 0.08), value: selectedIndex == i)
+
+                    if i < folder.snippets.count - 1 { Divider().padding(.leading, 10) }
+                }
+            }
+        }
+        .frame(width: 400)
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}

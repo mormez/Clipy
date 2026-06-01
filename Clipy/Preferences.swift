@@ -37,6 +37,18 @@ final class Preferences: ObservableObject {
             NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
         }
     }
+    @Published var snippetsMenuKeyCode: UInt32 {
+        didSet {
+            ud.set(Int(snippetsMenuKeyCode), forKey: Key.snippetsMenuKeyCode.rawValue)
+            NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
+        }
+    }
+    @Published var snippetsMenuModifiers: UInt32 {
+        didSet {
+            ud.set(Int(snippetsMenuModifiers), forKey: Key.snippetsMenuModifiers.rawValue)
+            NotificationCenter.default.post(name: .hotkeyChanged, object: nil)
+        }
+    }
     @Published var excludedBundleIDs: [String] {
         didSet { set(excludedBundleIDs, for: .excludedBundleIDs) }
     }
@@ -64,6 +76,8 @@ final class Preferences: ObservableObject {
         launchAtLogin    = ud.bool(forKey: Key.launchAtLogin.rawValue)
         itemsPanelWidth  = ud.object(forKey: Key.itemsPanelWidth.rawValue) as? Int ?? 400
         previewLines     = ud.object(forKey: Key.previewLines.rawValue) as? Int ?? 2
+        snippetsMenuKeyCode  = UInt32(ud.object(forKey: Key.snippetsMenuKeyCode.rawValue)  as? Int ?? kVK_ANSI_S)
+        snippetsMenuModifiers = UInt32(ud.object(forKey: Key.snippetsMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
@@ -79,6 +93,7 @@ final class Preferences: ObservableObject {
     private enum Key: String {
         case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
         case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth, previewLines
+        case snippetsMenuKeyCode, snippetsMenuModifiers
     }
 
     private func set(_ value: Any, for key: Key) {
