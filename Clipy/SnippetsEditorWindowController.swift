@@ -37,7 +37,7 @@ private struct SnippetsEditorView: View {
 
     var body: some View {
         NavigationSplitView {
-            folderList
+            folderColumn
         } content: {
             if let fi = selectedFolderIndex {
                 SnippetList(folderIndex: fi, selectedSnippetID: $selectedSnippetID)
@@ -53,44 +53,56 @@ private struct SnippetsEditorView: View {
                 ContentUnavailableView("Select a Snippet", systemImage: "text.quote")
             }
         }
-        .sheet(isPresented: $showAddFolder) {
-            addFolderSheet
-        }
-        .sheet(isPresented: $showRenameFolder) {
-            renameFolderSheet
-        }
+        // Remove the default sidebar toggle button from the toolbar
+        .toolbar(removing: .sidebarToggle)
+        .sheet(isPresented: $showAddFolder) { addFolderSheet }
+        .sheet(isPresented: $showRenameFolder) { renameFolderSheet }
     }
 
-    private var folderList: some View {
-        List(selection: $selectedFolderID) {
-            ForEach(manager.folders) { folder in
-                Label(folder.name, systemImage: "folder")
-                    .tag(folder.id)
-                    .gesture(TapGesture(count: 2).onEnded { beginRename() })
+    // MARK: - Folder column (list + bottom action bar)
+
+    private var folderColumn: some View {
+        VStack(spacing: 0) {
+            List(selection: $selectedFolderID) {
+                ForEach(manager.folders) { folder in
+                    Label(folder.name, systemImage: "folder")
+                        .tag(folder.id)
+                        .gesture(TapGesture(count: 2).onEnded { beginRename() })
+                }
+                .onMove { manager.moveFolder(from: $0, to: $1) }
             }
-            .onMove { manager.moveFolder(from: $0, to: $1) }
+
+            Divider()
+
+            // Bottom bar: + and − on the left, ✏️ Rename on the right
+            HStack(spacing: 0) {
+                Button(action: { showAddFolder = true }) {
+                    Image(systemName: "plus").frame(width: 28, height: 22)
+                }
+                .buttonStyle(.plain)
+                .help("New Folder")
+
+                Button(action: deleteSelectedFolder) {
+                    Image(systemName: "minus").frame(width: 28, height: 22)
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedFolderID == nil)
+                .help("Delete Folder")
+
+                Spacer()
+
+                Button(action: beginRename) {
+                    Image(systemName: "pencil").frame(width: 28, height: 22)
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedFolderID == nil)
+                .help("Rename Folder")
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 3)
+            .background(Color(NSColor.windowBackgroundColor))
         }
         .navigationTitle("Folders")
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: { showAddFolder = true }) {
-                    Image(systemName: "plus")
-                }
-            }
-            ToolbarItem(placement: .automatic) {
-                Button(action: beginRename) {
-                    Image(systemName: "pencil")
-                }
-                .disabled(selectedFolderID == nil)
-                .help("Rename folder")
-            }
-            ToolbarItem(placement: .automatic) {
-                Button(action: deleteSelectedFolder) {
-                    Image(systemName: "minus")
-                }
-                .disabled(selectedFolderID == nil)
-            }
-        }
     }
 
     private func beginRename() {
@@ -107,6 +119,8 @@ private struct SnippetsEditorView: View {
         selectedSnippetID = nil
         manager.removeFolder(at: idx)
     }
+
+    // MARK: - Sheets
 
     private var addFolderSheet: some View {
         VStack(spacing: 20) {
@@ -156,6 +170,8 @@ private struct SnippetsEditorView: View {
     }
 }
 
+// MARK: - Snippet list column
+
 private struct SnippetList: View {
     let folderIndex: Int
     @ObservedObject private var manager = SnippetManager.shared
@@ -164,7 +180,6 @@ private struct SnippetList: View {
     @State private var newTitle = ""
     @State private var newContent = ""
 
-    // Guard against stale folderIndex during SwiftUI re-render after deletion
     private var folder: SnippetFolder? {
         guard folderIndex < manager.folders.count else { return nil }
         return manager.folders[folderIndex]
@@ -172,29 +187,41 @@ private struct SnippetList: View {
 
     var body: some View {
         if let folder {
-            List(selection: $selectedSnippetID) {
-                ForEach(folder.snippets) { snippet in
-                    Text(snippet.title).tag(snippet.id)
-                }
-                .onMove { manager.moveSnippet(in: folderIndex, from: $0, to: $1) }
-            }
-            .navigationTitle(folder.name)
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
+            VStack(spacing: 0) {
+                // Header bar with + / − clearly above the list
+                HStack(spacing: 4) {
+                    Text("Snippets")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
                     Button(action: { showAddSnippet = true }) {
                         Image(systemName: "plus")
                     }
-                }
-                ToolbarItem(placement: .automatic) {
+                    .buttonStyle(.borderless)
+                    .help("New Snippet")
+
                     Button(action: deleteSelectedSnippet) {
                         Image(systemName: "minus")
                     }
+                    .buttonStyle(.borderless)
                     .disabled(selectedSnippetID == nil)
+                    .help("Delete Snippet")
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(NSColor.windowBackgroundColor))
+
+                Divider()
+
+                List(selection: $selectedSnippetID) {
+                    ForEach(folder.snippets) { snippet in
+                        Text(snippet.title).tag(snippet.id)
+                    }
+                    .onMove { manager.moveSnippet(in: folderIndex, from: $0, to: $1) }
                 }
             }
-            .sheet(isPresented: $showAddSnippet) {
-                addSnippetSheet
-            }
+            .navigationTitle(folder.name)
+            .sheet(isPresented: $showAddSnippet) { addSnippetSheet }
         } else {
             ContentUnavailableView("Folder not found", systemImage: "folder")
         }
@@ -231,6 +258,8 @@ private struct SnippetList: View {
     }
 }
 
+// MARK: - Snippet editor
+
 private struct SnippetEditor: View {
     let folderIndex: Int
     let snippetIndex: Int
@@ -239,7 +268,6 @@ private struct SnippetEditor: View {
     @State private var content: String = ""
     @State private var isDirty = false
 
-    // Guard against stale indices during SwiftUI re-render
     private var snippet: Snippet? {
         guard folderIndex < manager.folders.count,
               snippetIndex < manager.folders[folderIndex].snippets.count else { return nil }
@@ -272,14 +300,9 @@ private struct SnippetEditor: View {
             }
             .padding()
             .navigationTitle("Edit Snippet")
-            .onAppear {
-                title = snippet.title
-                content = snippet.content
-            }
+            .onAppear { title = snippet.title; content = snippet.content }
             .onChange(of: snippetIndex) { _, _ in
-                if let s = self.snippet {
-                    title = s.title; content = s.content; isDirty = false
-                }
+                if let s = self.snippet { title = s.title; content = s.content; isDirty = false }
             }
         } else {
             ContentUnavailableView("Snippet not found", systemImage: "text.quote")
