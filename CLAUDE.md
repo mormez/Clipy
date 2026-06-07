@@ -39,8 +39,8 @@ build.sh         ← build + auto-relaunch (see below)
 
 ## Building & testing
 Always use `./build.sh` to build. On success it automatically:
-1. Kills the running `ModernClipy` instance
-2. Relaunches the new build from `build/DerivedData/Build/Products/Debug/ModernClipy.app`
+1. Kills the running `Modern Clipboard` instance
+2. Relaunches the new build from `build/DerivedData/Build/Products/Debug/Modern Clipboard.app`
 
 This means every `./build.sh` produces a running app the user can test immediately — no manual quit/reopen needed.
 
@@ -49,4 +49,4 @@ This means every `./build.sh` produces a running app the user can test immediate
 **Accessibility permission:** required for paste simulation. Grant once in System Settings → Privacy & Security → Accessibility.
 
 ## Bundle ID
-`com.clipy.Clipy` (app binary is named `ModernClipy`)
+`com.modernclipboard.app` (app binary is named `Modern Clipboard`)

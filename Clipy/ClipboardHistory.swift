@@ -5,7 +5,7 @@ final class ClipboardHistory {
     static let shared = ClipboardHistory()
 
     private(set) var items: [ClipItem] = []
-    private let storageKey = "com.clipy.history"
+    private let storageKey = "com.modernclipboard.history"
 
     private init() { load() }
 

@@ -335,6 +335,29 @@ private struct PreferencesView: View {
             .padding(.top, 4)
 
             Spacer()
+
+            Divider().padding(.horizontal, 40)
+
+            VStack(spacing: 6) {
+                Text("Documentation")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    DocDownloadButton(
+                        label: "Quick Start Guide",
+                        icon: "arrow.down.doc",
+                        resource: "Modern Clipboard Quick Start",
+                        ext: "docx"
+                    )
+                    DocDownloadButton(
+                        label: "User Manual",
+                        icon: "arrow.down.doc",
+                        resource: "Modern Clipboard User Manual",
+                        ext: "docx"
+                    )
+                }
+            }
+            .padding(.bottom, 4)
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -416,6 +439,77 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         }
         .padding(20)
         .frame(width: 480, height: 320)
+    }
+}
+
+// MARK: - Doc download button
+
+private struct DocDownloadButton: View {
+    let label: String
+    let icon: String
+    let resource: String
+    let ext: String
+
+    @State private var feedback: DownloadFeedback = .idle
+
+    enum DownloadFeedback { case idle, success, failure }
+
+    var body: some View {
+        Button {
+            download()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: feedbackIcon)
+                    .foregroundStyle(feedbackColor)
+                Text(feedback == .success ? "Saved to Desktop" : label)
+                    .lineLimit(1)
+            }
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .disabled(feedback != .idle)
+    }
+
+    private var feedbackIcon: String {
+        switch feedback {
+        case .idle:    return icon
+        case .success: return "checkmark.circle.fill"
+        case .failure: return "xmark.circle.fill"
+        }
+    }
+
+    private var feedbackColor: Color {
+        switch feedback {
+        case .idle:    return .primary
+        case .success: return .green
+        case .failure: return .red
+        }
+    }
+
+    private func download() {
+        guard let src = Bundle.main.url(forResource: resource, withExtension: ext) else {
+            flash(.failure); return
+        }
+        let desktop = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Desktop")
+        var dest = desktop.appendingPathComponent("\(resource).\(ext)")
+        // Avoid overwriting: append (2), (3), … if file already exists
+        var n = 2
+        while FileManager.default.fileExists(atPath: dest.path) {
+            dest = desktop.appendingPathComponent("\(resource) (\(n)).\(ext)")
+            n += 1
+        }
+        do {
+            try FileManager.default.copyItem(at: src, to: dest)
+            flash(.success)
+        } catch {
+            flash(.failure)
+        }
+    }
+
+    private func flash(_ state: DownloadFeedback) {
+        feedback = state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { feedback = .idle }
     }
 }
 

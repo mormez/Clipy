@@ -44,7 +44,11 @@ SOURCES = [
 ]
 
 # resource files
-RESOURCES = ["Assets.xcassets"]
+RESOURCES = [
+    "Assets.xcassets",
+    "Modern Clipboard Quick Start.docx",
+    "Modern Clipboard User Manual.docx",
+]
 
 # map filename → (fileRef UUID, buildFile UUID)
 refs = {}
@@ -65,6 +69,7 @@ def file_type(name):
     if name == "Assets.xcassets": return "folder.assetcatalog"
     if name.endswith(".plist"): return "text.plist.xml"
     if name.endswith(".entitlements"): return "text.plist.entitlements"
+    if name.endswith(".docx"): return "file"
     return "file"
 
 def pbx_build_files():
@@ -77,15 +82,19 @@ def pbx_build_files():
         lines.append(f'\t\t{bref} /* {f} in Resources */ = {{isa = PBXBuildFile; fileRef = {fref} /* {f} */; }};')
     return "\n".join(lines)
 
+def pbx_path(name):
+    """Quote the path if it contains spaces."""
+    return f'"{name}"' if ' ' in name else name
+
 def pbx_file_references():
     lines = []
     for f in SOURCES + RESOURCES:
         fref, _ = refs[f]
         ft = file_type(f)
-        lines.append(f'\t\t{fref} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = {ft}; path = {f}; sourceTree = "<group>"; }};')
+        lines.append(f'\t\t{fref} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = {ft}; path = {pbx_path(f)}; sourceTree = "<group>"; }};')
     lines.append(f'\t\t{INFOPLIST_REF} /* Info.plist */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; }};')
     lines.append(f'\t\t{ENTITLEMENTS_REF} /* Clipy.entitlements */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; }};')
-    lines.append(f'\t\t{PRODUCT_APP} /* Clipy.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipy.app; sourceTree = BUILT_PRODUCTS_DIR; }};')
+    lines.append(f'\t\t{PRODUCT_APP} /* Modern Clipboard.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Modern Clipboard.app"; sourceTree = BUILT_PRODUCTS_DIR; }};')
     return "\n".join(lines)
 
 def clipy_group_children():
@@ -125,8 +134,8 @@ COMMON_TARGET = f"""
 \t\t\t\t\t"@executable_path/../Frameworks",
 \t\t\t\t);
 \t\t\t\tMACOSX_DEPLOYMENT_TARGET = 15.0;
-\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.clipy.ModernClipy;
-\t\t\t\tPRODUCT_NAME = ModernClipy;
+\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.modernclipboard.app;
+\t\t\t\tPRODUCT_NAME = "Modern Clipboard";
 \t\t\t\tSWIFT_VERSION = 5.0;"""
 
 pbx = f"""// !$*UTF8*$!
@@ -161,12 +170,12 @@ pbx = f"""// !$*UTF8*$!
 \t\t{MAIN_GROUP} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-\t\t\t\t{CLIPY_GROUP} /* Clipy */,
+\t\t\t\t{CLIPY_GROUP} /* Modern Clipboard */,
 \t\t\t\t{PRODUCTS_GRP} /* Products */,
 \t\t\t);
 \t\t\tsourceTree = "<group>";
 \t\t}};
-\t\t{CLIPY_GROUP} /* Clipy */ = {{
+\t\t{CLIPY_GROUP} /* Modern Clipboard */ = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
 {clipy_group_children()}
@@ -178,7 +187,7 @@ pbx = f"""// !$*UTF8*$!
 \t\t{PRODUCTS_GRP} /* Products */ = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-\t\t\t\t{PRODUCT_APP} /* Clipy.app */,
+\t\t\t\t{PRODUCT_APP} /* Modern Clipboard.app */,
 \t\t\t);
 \t\t\tname = Products;
 \t\t\tsourceTree = "<group>";
@@ -186,9 +195,9 @@ pbx = f"""// !$*UTF8*$!
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-\t\t{TARGET} /* Clipy */ = {{
+\t\t{TARGET} /* Modern Clipboard */ = {{
 \t\t\tisa = PBXNativeTarget;
-\t\t\tbuildConfigurationList = {CFGL_TGT} /* Build configuration list for PBXNativeTarget "Clipy" */;
+\t\t\tbuildConfigurationList = {CFGL_TGT} /* Build configuration list for PBXNativeTarget "Modern Clipboard" */;
 \t\t\tbuildPhases = (
 \t\t\t\t{SRC_BUILD} /* Sources */,
 \t\t\t\t{RES_BUILD} /* Resources */,
@@ -198,12 +207,12 @@ pbx = f"""// !$*UTF8*$!
 \t\t\t);
 \t\t\tdependencies = (
 \t\t\t);
-\t\t\tname = Clipy;
+\t\t\tname = "Modern Clipboard";
 \t\t\tpackageProductDependencies = (
 \t\t\t\t{SPK_PROD_DEP} /* Sparkle */,
 \t\t\t);
-\t\t\tproductName = Clipy;
-\t\t\tproductReference = {PRODUCT_APP} /* Clipy.app */;
+\t\t\tproductName = "Modern Clipboard";
+\t\t\tproductReference = {PRODUCT_APP} /* Modern Clipboard.app */;
 \t\t\tproductType = "com.apple.product-type.application";
 \t\t}};
 /* End PBXNativeTarget section */
@@ -219,7 +228,7 @@ pbx = f"""// !$*UTF8*$!
 \t\t\t\t\t}};
 \t\t\t\t}};
 \t\t\t}};
-\t\t\tbuildConfigurationList = {CFGL_PROJ} /* Build configuration list for PBXProject "Clipy" */;
+\t\t\tbuildConfigurationList = {CFGL_PROJ} /* Build configuration list for PBXProject "Modern Clipboard" */;
 \t\t\tcompatibilityVersion = "Xcode 14.0";
 \t\t\tdevelopmentRegion = en;
 \t\t\thasScannedForEncodings = 0;
@@ -235,7 +244,7 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tprojectDirPath = "";
 \t\t\tprojectRoot = "";
 \t\t\ttargets = (
-\t\t\t\t{TARGET} /* Clipy */,
+\t\t\t\t{TARGET} /* Modern Clipboard */,
 \t\t\t);
 \t\t}};
 /* End PBXProject section */
@@ -294,7 +303,7 @@ pbx = f"""// !$*UTF8*$!
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-\t\t{CFGL_PROJ} /* Build configuration list for PBXProject "Clipy" */ = {{
+\t\t{CFGL_PROJ} /* Build configuration list for PBXProject "Modern Clipboard" */ = {{
 \t\t\tisa = XCConfigurationList;
 \t\t\tbuildConfigurations = (
 \t\t\t\t{CFG_PROJ_DBG} /* Debug */,
@@ -303,7 +312,7 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tdefaultConfigurationIsVisible = 0;
 \t\t\tdefaultConfigurationName = Release;
 \t\t}};
-\t\t{CFGL_TGT} /* Build configuration list for PBXNativeTarget "Clipy" */ = {{
+\t\t{CFGL_TGT} /* Build configuration list for PBXNativeTarget "Modern Clipboard" */ = {{
 \t\t\tisa = XCConfigurationList;
 \t\t\tbuildConfigurations = (
 \t\t\t\t{CFG_TGT_DBG} /* Debug */,

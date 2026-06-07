@@ -4,7 +4,7 @@ final class SnippetManager: ObservableObject {
     static let shared = SnippetManager()
 
     @Published var folders: [SnippetFolder] = []
-    private let storageKey = "com.clipy.snippets"
+    private let storageKey = "com.modernclipboard.snippets"
 
     private init() {
         load()

@@ -25,6 +25,8 @@
 		A1B2C3D4E5F6020F00 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010F00 /* Extensions.swift */; };
 		A1B2C3D4E5F6021000 /* UpdaterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011000 /* UpdaterManager.swift */; };
 		A1B2C3D4E5F6021100 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011100 /* Assets.xcassets */; };
+		A1B2C3D4E5F6021200 /* Modern Clipboard Quick Start.docx in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011200 /* Modern Clipboard Quick Start.docx */; };
+		A1B2C3D4E5F6021300 /* Modern Clipboard User Manual.docx in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011300 /* Modern Clipboard User Manual.docx */; };
 		A1B2C3D4E5F6040200 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F6040100 /* Sparkle */; };
 /* End PBXBuildFile section */
 
@@ -47,9 +49,11 @@
 		A1B2C3D4E5F6010F00 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6011000 /* UpdaterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterManager.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6011100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F6011200 /* Modern Clipboard Quick Start.docx */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Modern Clipboard Quick Start.docx"; sourceTree = "<group>"; };
+		A1B2C3D4E5F6011300 /* Modern Clipboard User Manual.docx */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Modern Clipboard User Manual.docx"; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030100 /* Clipy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; };
-		A1B2C3D4E5F6000300 /* Clipy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F6000300 /* Modern Clipboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Modern Clipboard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,12 +71,12 @@
 		A1B2C3D4E5F6001000 = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F6001100 /* Clipy */,
+				A1B2C3D4E5F6001100 /* Modern Clipboard */,
 				A1B2C3D4E5F6001200 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F6001100 /* Clipy */ = {
+		A1B2C3D4E5F6001100 /* Modern Clipboard */ = {
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F6010000,
@@ -93,6 +97,8 @@
 				A1B2C3D4E5F6010F00,
 				A1B2C3D4E5F6011000,
 				A1B2C3D4E5F6011100,
+				A1B2C3D4E5F6011200,
+				A1B2C3D4E5F6011300,
 				A1B2C3D4E5F6030000,
 				A1B2C3D4E5F6030100,
 			);
@@ -103,7 +109,7 @@
 		A1B2C3D4E5F6001200 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F6000300 /* Clipy.app */,
+				A1B2C3D4E5F6000300 /* Modern Clipboard.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,9 +117,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A1B2C3D4E5F6000200 /* Clipy */ = {
+		A1B2C3D4E5F6000200 /* Modern Clipboard */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1B2C3D4E5F6003500 /* Build configuration list for PBXNativeTarget "Clipy" */;
+			buildConfigurationList = A1B2C3D4E5F6003500 /* Build configuration list for PBXNativeTarget "Modern Clipboard" */;
 			buildPhases = (
 				A1B2C3D4E5F6002000 /* Sources */,
 				A1B2C3D4E5F6002100 /* Resources */,
@@ -123,12 +129,12 @@
 			);
 			dependencies = (
 			);
-			name = Clipy;
+			name = "Modern Clipboard";
 			packageProductDependencies = (
 				A1B2C3D4E5F6040100 /* Sparkle */,
 			);
-			productName = Clipy;
-			productReference = A1B2C3D4E5F6000300 /* Clipy.app */;
+			productName = "Modern Clipboard";
+			productReference = A1B2C3D4E5F6000300 /* Modern Clipboard.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -144,7 +150,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A1B2C3D4E5F6003400 /* Build configuration list for PBXProject "Clipy" */;
+			buildConfigurationList = A1B2C3D4E5F6003400 /* Build configuration list for PBXProject "Modern Clipboard" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -160,7 +166,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A1B2C3D4E5F6000200 /* Clipy */,
+				A1B2C3D4E5F6000200 /* Modern Clipboard */,
 			);
 		};
 /* End PBXProject section */
@@ -171,6 +177,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F6021100 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F6021200 /* Modern Clipboard Quick Start.docx in Resources */,
+				A1B2C3D4E5F6021300 /* Modern Clipboard User Manual.docx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,8 +262,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipy.ModernClipy;
-				PRODUCT_NAME = ModernClipy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.modernclipboard.app;
+				PRODUCT_NAME = "Modern Clipboard";
 				SWIFT_VERSION = 5.0;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 			};
@@ -276,8 +284,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipy.ModernClipy;
-				PRODUCT_NAME = ModernClipy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.modernclipboard.app;
+				PRODUCT_NAME = "Modern Clipboard";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -285,7 +293,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A1B2C3D4E5F6003400 /* Build configuration list for PBXProject "Clipy" */ = {
+		A1B2C3D4E5F6003400 /* Build configuration list for PBXProject "Modern Clipboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F6003000 /* Debug */,
@@ -294,7 +302,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1B2C3D4E5F6003500 /* Build configuration list for PBXNativeTarget "Clipy" */ = {
+		A1B2C3D4E5F6003500 /* Build configuration list for PBXNativeTarget "Modern Clipboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F6003200 /* Debug */,

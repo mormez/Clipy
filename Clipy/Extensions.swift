@@ -2,11 +2,11 @@ import AppKit
 import Foundation
 
 extension Notification.Name {
-    static let clipboardHistoryChanged = Notification.Name("com.clipy.historyChanged")
-    static let snippetsChanged = Notification.Name("com.clipy.snippetsChanged")
-    static let preferencesChanged = Notification.Name("com.clipy.preferencesChanged")
-    static let hotkeyChanged = Notification.Name("com.clipy.hotkeyChanged")
-    static let stopHotkeyRecording = Notification.Name("com.clipy.stopHotkeyRecording")
+    static let clipboardHistoryChanged = Notification.Name("com.modernclipboard.historyChanged")
+    static let snippetsChanged = Notification.Name("com.modernclipboard.snippetsChanged")
+    static let preferencesChanged = Notification.Name("com.modernclipboard.preferencesChanged")
+    static let hotkeyChanged = Notification.Name("com.modernclipboard.hotkeyChanged")
+    static let stopHotkeyRecording = Notification.Name("com.modernclipboard.stopHotkeyRecording")
 }
 
 extension NSImage {
