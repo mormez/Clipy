@@ -312,7 +312,7 @@ private struct PreferencesView: View {
             VStack(spacing: 6) {
                 HStack(spacing: 4) {
                     Text("Developer:").foregroundStyle(.secondary)
-                    Text("Developed by Mor Mezrich for Myrrh Labs. Based on Clipy.").fontWeight(.medium)
+                    Text("Developed by Mor Mezrich for Myrrh Labs.").fontWeight(.medium)
                 }
                 HStack(spacing: 4) {
                     Text("Contact:").foregroundStyle(.secondary)
@@ -320,10 +320,19 @@ private struct PreferencesView: View {
                          destination: URL(string: "mailto:modern.clipboard@gmail.com")!)
                         .foregroundStyle(.blue)
                 }
-                CopyrightLinkView()
-                    .padding(.top, 8)
+                HStack(spacing: 4) {
+                    Text("Modern Clipboard is based on Clipy.").foregroundStyle(.secondary)
+                    CopyrightLinkView()
+                }
+                .padding(.top, 8)
             }
             .font(.system(size: 13))
+
+            Button("Check for Updates…") {
+                UpdaterManager.shared.checkForUpdates()
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top, 4)
 
             Spacer()
         }

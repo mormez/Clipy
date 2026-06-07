@@ -56,7 +56,8 @@ final class ClipboardPopupController {
 
     private let folderColW: CGFloat     = 200
     private var itemColW: CGFloat       { CGFloat(Preferences.shared.itemsPanelWidth) }
-    private let headerH: CGFloat        = 50
+    private let headerH: CGFloat        = 50  // panel sizing budget
+    private let headerVisualH: CGFloat  = 36  // actual rendered height: padding(10+10) + 16pt content
     private let folderRowH: CGFloat     = 40
     private let sectionHeaderH: CGFloat = 28
     private let bottomMargin: CGFloat   = 12
@@ -344,7 +345,7 @@ final class ClipboardPopupController {
         let clipN = currentFolders.count
 
         // Accumulate visual distance from the panel's top down to the row's top
-        var offset: CGFloat = headerH + 1   // header height + divider
+        var offset: CGFloat = headerVisualH + 1   // actual rendered header height + divider
 
         if rowIndex < flatN {
             offset += CGFloat(rowIndex) * (itemRowH + 1)
