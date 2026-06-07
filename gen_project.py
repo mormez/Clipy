@@ -93,7 +93,7 @@ def pbx_file_references():
         ft = file_type(f)
         lines.append(f'\t\t{fref} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = {ft}; path = {pbx_path(f)}; sourceTree = "<group>"; }};')
     lines.append(f'\t\t{INFOPLIST_REF} /* Info.plist */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; }};')
-    lines.append(f'\t\t{ENTITLEMENTS_REF} /* Clipy.entitlements */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; }};')
+    lines.append(f'\t\t{ENTITLEMENTS_REF} /* ModernClipboard.entitlements */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ModernClipboard.entitlements; sourceTree = "<group>"; }};')
     lines.append(f'\t\t{PRODUCT_APP} /* Modern Clipboard.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Modern Clipboard.app"; sourceTree = BUILT_PRODUCTS_DIR; }};')
     return "\n".join(lines)
 
@@ -123,12 +123,12 @@ COMMON_PROJECT = """
 
 COMMON_TARGET = f"""
 \t\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-\t\t\t\tCODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
+\t\t\t\tCODE_SIGN_ENTITLEMENTS = Sources/ModernClipboard.entitlements;
 \t\t\t\tCODE_SIGN_IDENTITY = "ModernClipy Dev";
 \t\t\t\tCODE_SIGN_STYLE = Manual;
 \t\t\t\tCOMBINE_HIDPI_IMAGES = YES;
 \t\t\t\tENABLE_HARDENED_RUNTIME = YES;
-\t\t\t\tINFOPLIST_FILE = Clipy/Info.plist;
+\t\t\t\tINFOPLIST_FILE = Sources/Info.plist;
 \t\t\t\tLD_RUNPATH_SEARCH_PATHS = (
 \t\t\t\t\t"$(inherited)",
 \t\t\t\t\t"@executable_path/../Frameworks",
@@ -180,8 +180,8 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tchildren = (
 {clipy_group_children()}
 \t\t\t);
-\t\t\tname = Clipy;
-\t\t\tpath = Clipy;
+\t\t\tname = Sources;
+\t\t\tpath = Sources;
 \t\t\tsourceTree = "<group>";
 \t\t}};
 \t\t{PRODUCTS_GRP} /* Products */ = {{

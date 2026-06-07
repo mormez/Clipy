@@ -21,7 +21,7 @@ Modern Swift clipboard manager for macOS 26 / Apple Silicon. Personal rebuild of
 
 ## Source layout
 ```
-Clipy/
+Sources/
   AppDelegate.swift
   MenuBarManager.swift
   ClipboardMonitor.swift

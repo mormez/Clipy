@@ -52,7 +52,7 @@
 		A1B2C3D4E5F6011200 /* Modern Clipboard Quick Start.docx */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Modern Clipboard Quick Start.docx"; sourceTree = "<group>"; };
 		A1B2C3D4E5F6011300 /* Modern Clipboard User Manual.docx */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Modern Clipboard User Manual.docx"; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1B2C3D4E5F6030100 /* Clipy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; };
+		A1B2C3D4E5F6030100 /* ModernClipboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ModernClipboard.entitlements; sourceTree = "<group>"; };
 		A1B2C3D4E5F6000300 /* Modern Clipboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Modern Clipboard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -102,8 +102,8 @@
 				A1B2C3D4E5F6030000,
 				A1B2C3D4E5F6030100,
 			);
-			name = Clipy;
-			path = Clipy;
+			name = Sources;
+			path = Sources;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F6001200 /* Products */ = {
@@ -251,12 +251,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Sources/ModernClipboard.entitlements;
 				CODE_SIGN_IDENTITY = "ModernClipy Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = Clipy/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -273,12 +273,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Sources/ModernClipboard.entitlements;
 				CODE_SIGN_IDENTITY = "ModernClipy Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = Clipy/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
