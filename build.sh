@@ -3,7 +3,7 @@ set -e
 
 echo "Building Modern Clipboard..."
 xcodebuild \
-  -project Clipy.xcodeproj \
+  -project "Modern Clipboard.xcodeproj" \
   -scheme "Modern Clipboard" \
   -configuration Debug \
   -derivedDataPath build/DerivedData \

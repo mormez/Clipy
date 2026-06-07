@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates Clipy.xcodeproj/project.pbxproj"""
+"""Generates Modern Clipboard.xcodeproj/project.pbxproj"""
 
 import os
 
@@ -347,7 +347,7 @@ pbx = f"""// !$*UTF8*$!
 }}
 """
 
-out = os.path.join(os.path.dirname(__file__), "Clipy.xcodeproj", "project.pbxproj")
+out = os.path.join(os.path.dirname(__file__), "Modern Clipboard.xcodeproj", "project.pbxproj")
 with open(out, "w") as f:
     f.write(pbx)
 print(f"Written: {out}")

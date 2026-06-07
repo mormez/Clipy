@@ -33,7 +33,7 @@ Sources/
   HotkeyManager.swift
   PasteService.swift
   Preferences.swift / PreferencesWindowController.swift
-gen_project.py   ← regenerates Clipy.xcodeproj when adding/removing source files
+gen_project.py   ← regenerates Modern Clipboard.xcodeproj when adding/removing source files
 build.sh         ← build + auto-relaunch (see below)
 ```
 
