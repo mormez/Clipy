@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 106" width="88" height="106">
+  <!-- Clipboard body -->
+  <rect x="0" y="0" width="88" height="106" rx="11" fill="#6C63FF"/>
+  <!-- White border T-shape (slightly larger, acts as outline) -->
+  <rect x="6" y="1" width="76" height="14" rx="3" fill="white"/>
+  <rect x="22" y="-11" width="44" height="14" rx="3" fill="white"/>
+  <!-- Purple T-shape clip on top -->
+  <rect x="8" y="3" width="72" height="10" rx="2" fill="#6C63FF"/>
+  <rect x="24" y="-9" width="40" height="13" rx="2" fill="#6C63FF"/>
+  <!-- Three tapering content lines -->
+  <rect x="12" y="24" width="64" height="9" rx="4.5" fill="white"/>
+  <rect x="12" y="44" width="52" height="9" rx="4.5" fill="white"/>
+  <rect x="12" y="64" width="40" height="9" rx="4.5" fill="white"/>
+</svg>

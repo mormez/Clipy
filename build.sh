@@ -19,4 +19,10 @@ touch "$APP"
 echo ""
 echo "✓ Build succeeded: $APP"
 echo ""
-echo "To run: open \"$APP\""
+
+# Kill the running instance (if any) and relaunch so changes are testable immediately
+echo "Relaunching ModernClipy..."
+killall ModernClipy 2>/dev/null || true
+sleep 0.5
+open "$APP"
+echo "✓ App relaunched"

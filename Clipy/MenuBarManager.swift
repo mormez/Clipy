@@ -106,6 +106,10 @@ final class MenuBarManager: NSObject {
         snippetsEditor.target = self
         menu.addItem(snippetsEditor)
 
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+
         let prefs = NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ",")
         prefs.target = self
         menu.addItem(prefs)
@@ -181,6 +185,10 @@ final class MenuBarManager: NSObject {
     @objc private func openSnippetsEditor() {
         SnippetsEditorWindowController.shared.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func checkForUpdates() {
+        UpdaterManager.shared.checkForUpdates()
     }
 
     @objc private func openPreferences() {

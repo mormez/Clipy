@@ -73,6 +73,14 @@ private struct PreferencesView: View {
                 .pickerStyle(.menu)
                 .frame(maxWidth: 320)
 
+                Picker("Sort history order by:", selection: $prefs.historySortOrder) {
+                    ForEach(HistorySortOrder.allCases, id: \.self) { order in
+                        Text(order.label).tag(order)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 320)
+
                 HStack {
                     Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
                         ForEach(historyOptions, id: \.self) { count in
@@ -304,7 +312,7 @@ private struct PreferencesView: View {
             VStack(spacing: 6) {
                 HStack(spacing: 4) {
                     Text("Developer:").foregroundStyle(.secondary)
-                    Text("Mor Mezrich").fontWeight(.medium)
+                    Text("Mor Mezrich for Myrrh Labs").fontWeight(.medium)
                 }
                 HStack(spacing: 4) {
                     Text("Contact:").foregroundStyle(.secondary)

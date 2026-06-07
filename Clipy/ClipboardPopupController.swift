@@ -94,7 +94,16 @@ final class ClipboardPopupController {
         guard !state.items.isEmpty else { return }
 
         currentStyle = Preferences.shared.historyMenuStyle
-        (currentFlatItems, currentFolders) = computeGroups(items: state.items, style: currentStyle)
+        let sortedItems: [ClipItem]
+        switch Preferences.shared.historySortOrder {
+        case .dateCreated:
+            sortedItems = state.items
+        case .lastUsed:
+            sortedItems = state.items.sorted {
+                ($0.lastUsedAt ?? $0.timestamp) > ($1.lastUsedAt ?? $1.timestamp)
+            }
+        }
+        (currentFlatItems, currentFolders) = computeGroups(items: sortedItems, style: currentStyle)
 
         state.selectedRowIndex = 0
         state.expandedPane     = nil
@@ -359,6 +368,7 @@ final class ClipboardPopupController {
 
     private func pasteItem(_ item: ClipItem) {
         let app = previousApp
+        ClipboardHistory.shared.markUsed(id: item.id)
         hide()
         ClipboardMonitor.shared.pause()
         PasteService.shared.setClipboard(item: item)
@@ -738,6 +748,16 @@ struct PopupItemRow: View {
     }
 }
 
+// MARK: - Snippets popup state
+
+@Observable
+final class SnippetsPopupState {
+    var selectedFolderIndex: Int = 0
+    var expandedFolderIndex: Int? = nil
+    var selectedItemIndex: Int = 0
+    var hoverEnabled: Bool = false
+}
+
 // MARK: - Snippets popup controller
 
 final class SnippetsPopupController {
@@ -750,11 +770,7 @@ final class SnippetsPopupController {
     private var resignObserver: NSObjectProtocol?
     private var previousApp: NSRunningApplication?
 
-    // Simple state: which folder row is selected, which folder is open
-    private var selectedFolderIndex: Int = 0
-    private var expandedFolderIndex: Int? = nil
-    private var selectedItemIndex: Int = 0
-    private var hoverEnabled = false
+    let popupState = SnippetsPopupState()
 
     private let folderColW: CGFloat   = 200
     private let itemColW: CGFloat     = 400
@@ -772,10 +788,10 @@ final class SnippetsPopupController {
     func show() {
         guard !folders.isEmpty else { return }
         previousApp = NSWorkspace.shared.frontmostApplication
-        selectedFolderIndex = 0
-        expandedFolderIndex = nil
-        selectedItemIndex   = 0
-        hoverEnabled = false
+        popupState.selectedFolderIndex = 0
+        popupState.expandedFolderIndex = nil
+        popupState.selectedItemIndex   = 0
+        popupState.hoverEnabled        = false
 
         buildPanel()
         sizePanel()
@@ -787,13 +803,14 @@ final class SnippetsPopupController {
         ) { [weak self] _ in self?.hide() }
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handle(event) ?? event
+            guard let self else { return event }
+            return self.handle(event)
         }
 
         panel?.acceptsMouseMovedEvents = true
         mouseMoveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
             guard let self else { return event }
-            self.hoverEnabled = true
+            self.popupState.hoverEnabled = true
             NSEvent.removeMonitor(self.mouseMoveMonitor as Any)
             self.mouseMoveMonitor = nil
             return event
@@ -832,12 +849,10 @@ final class SnippetsPopupController {
 
     private func makeFolderView() -> SnippetsFolderPanelView {
         SnippetsFolderPanelView(
+            state: popupState,
             folders: folders,
-            selectedFolderIndex: selectedFolderIndex,
-            expandedFolderIndex: expandedFolderIndex,
-            hoverEnabled: hoverEnabled,
             onSelectFolder: { [weak self] fi in self?.openFolder(fi) },
-            onHoverFolder:  { [weak self] fi in self?.selectedFolderIndex = fi }
+            onHoverFolder:  { [weak self] fi in self?.popupState.selectedFolderIndex = fi }
         )
     }
 
@@ -861,9 +876,9 @@ final class SnippetsPopupController {
 
     private func openFolder(_ fi: Int) {
         guard fi < folders.count else { return }
-        expandedFolderIndex = fi
-        selectedItemIndex   = 0
-        panel?.contentView = NSHostingView(rootView: makeFolderView())
+        popupState.expandedFolderIndex = fi
+        popupState.selectedItemIndex   = 0
+        // folder panel view updates automatically via @Observable state
 
         let folder = folders[fi]
         if itemPanel == nil {
@@ -883,11 +898,10 @@ final class SnippetsPopupController {
 
     private func makeItemView(folder: SnippetFolder, folderIndex: Int) -> SnippetsItemsPanelView {
         SnippetsItemsPanelView(
+            state: popupState,
             folder: folder,
-            selectedIndex: selectedItemIndex,
-            hoverEnabled: hoverEnabled,
             onSelect: { [weak self] i in self?.pasteSnippet(folder.snippets[i]) },
-            onHover:  { [weak self] i in self?.selectedItemIndex = i }
+            onHover:  { [weak self] i in self?.popupState.selectedItemIndex = i }
         )
     }
 
@@ -903,41 +917,45 @@ final class SnippetsPopupController {
     }
 
     private func closeFolder() {
-        expandedFolderIndex = nil
+        popupState.expandedFolderIndex = nil
         itemPanel?.orderOut(nil)
-        panel?.contentView = NSHostingView(rootView: makeFolderView())
+        // folder panel view updates automatically via @Observable state
     }
 
     // MARK: Keyboard
 
     private func handle(_ event: NSEvent) -> NSEvent? {
-        if expandedFolderIndex != nil { return handleItemLevel(event) }
+        if popupState.expandedFolderIndex != nil { return handleItemLevel(event) }
         return handleFolderLevel(event)
     }
 
     private func handleFolderLevel(_ event: NSEvent) -> NSEvent? {
         switch event.keyCode {
-        case 125: selectedFolderIndex = min(selectedFolderIndex + 1, folders.count - 1)
-                  panel?.contentView = NSHostingView(rootView: makeFolderView()); return nil
-        case 126: selectedFolderIndex = max(selectedFolderIndex - 1, 0)
-                  panel?.contentView = NSHostingView(rootView: makeFolderView()); return nil
-        case 124, 36, 76: openFolder(selectedFolderIndex); return nil
+        case 125:
+            popupState.selectedFolderIndex = min(popupState.selectedFolderIndex + 1, folders.count - 1)
+            return nil
+        case 126:
+            popupState.selectedFolderIndex = max(popupState.selectedFolderIndex - 1, 0)
+            return nil
+        case 124, 36, 76: openFolder(popupState.selectedFolderIndex); return nil
         case 53: hide(); return nil
         default: return event
         }
     }
 
     private func handleItemLevel(_ event: NSEvent) -> NSEvent? {
-        guard let fi = expandedFolderIndex, fi < folders.count else { return event }
+        guard let fi = popupState.expandedFolderIndex, fi < folders.count else { return event }
         let snippets = folders[fi].snippets
         switch event.keyCode {
-        case 125: selectedItemIndex = min(selectedItemIndex + 1, snippets.count - 1)
-                  itemPanel?.contentView = NSHostingView(rootView: makeItemView(folder: folders[fi], folderIndex: fi)); return nil
-        case 126: selectedItemIndex = max(selectedItemIndex - 1, 0)
-                  itemPanel?.contentView = NSHostingView(rootView: makeItemView(folder: folders[fi], folderIndex: fi)); return nil
+        case 125:
+            popupState.selectedItemIndex = min(popupState.selectedItemIndex + 1, snippets.count - 1)
+            return nil
+        case 126:
+            popupState.selectedItemIndex = max(popupState.selectedItemIndex - 1, 0)
+            return nil
         case 123, 53: closeFolder(); return nil
         case 36, 76:
-            if selectedItemIndex < snippets.count { pasteSnippet(snippets[selectedItemIndex]) }
+            if popupState.selectedItemIndex < snippets.count { pasteSnippet(snippets[popupState.selectedItemIndex]) }
             return nil
         default:
             if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < snippets.count {
@@ -980,10 +998,8 @@ final class SnippetsPopupController {
 // MARK: - Snippets folder panel view
 
 struct SnippetsFolderPanelView: View {
+    var state: SnippetsPopupState
     let folders: [SnippetFolder]
-    let selectedFolderIndex: Int
-    let expandedFolderIndex: Int?
-    let hoverEnabled: Bool
     let onSelectFolder: (Int) -> Void
     let onHoverFolder: (Int) -> Void
 
@@ -1008,8 +1024,8 @@ struct SnippetsFolderPanelView: View {
                         PopupFolderRow(
                             label: folder.name,
                             count: folder.snippets.count,
-                            isSelected: selectedFolderIndex == fi || expandedFolderIndex == fi,
-                            hoverEnabled: hoverEnabled,
+                            isSelected: state.selectedFolderIndex == fi || state.expandedFolderIndex == fi,
+                            hoverEnabled: state.hoverEnabled,
                             onSelect: { onSelectFolder(fi) },
                             onHover: { if $0 { onHoverFolder(fi) } }
                         )
@@ -1027,9 +1043,8 @@ struct SnippetsFolderPanelView: View {
 // MARK: - Snippets items panel view
 
 struct SnippetsItemsPanelView: View {
+    var state: SnippetsPopupState
     let folder: SnippetFolder
-    let selectedIndex: Int
-    let hoverEnabled: Bool
     let onSelect: (Int) -> Void
     let onHover: (Int) -> Void
 
@@ -1057,11 +1072,11 @@ struct SnippetsItemsPanelView: View {
                     }
                     .padding(.horizontal, 10).padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
-                    .background(selectedIndex == i ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .background(state.selectedItemIndex == i ? Color.accentColor.opacity(0.15) : Color.clear)
                     .contentShape(Rectangle())
                     .onTapGesture { onSelect(i) }
-                    .onHover { flag in if hoverEnabled && flag { onHover(i) } }
-                    .animation(.easeInOut(duration: 0.08), value: selectedIndex == i)
+                    .onHover { flag in if state.hoverEnabled && flag { onHover(i) } }
+                    .animation(.easeInOut(duration: 0.08), value: state.selectedItemIndex == i)
 
                     if i < folder.snippets.count - 1 { Divider().padding(.leading, 10) }
                 }

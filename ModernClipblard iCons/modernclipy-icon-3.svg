@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 106" width="88" height="106">
+  <!-- Clipboard body -->
+  <rect x="0" y="0" width="88" height="106" rx="11" fill="#6C63FF"/>
+
+  <!-- Board outline: broken where clip overlaps (top, left side, right side) -->
+  <path d="M20,12 L8,12 L8,15 M8,27 L8,98 L80,98 L80,27 M80,15 L80,12 L68,12"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.95"/>
+
+  <!-- White border T-shape (outline of clip) -->
+  <rect x="6" y="15" width="76" height="14" rx="3" fill="white"/>
+  <rect x="22" y="3" width="44" height="14" rx="3" fill="white"/>
+  <!-- Darker purple T fill -->
+  <rect x="8" y="17" width="72" height="10" rx="2" fill="#4B44CC"/>
+  <rect x="24" y="5" width="40" height="13" rx="2" fill="#4B44CC"/>
+
+  <!-- Three tapering content lines -->
+  <rect x="12" y="37" width="64" height="6" rx="3" fill="white"/>
+  <rect x="12" y="53" width="52" height="6" rx="3" fill="white"/>
+  <rect x="12" y="69" width="40" height="6" rx="3" fill="white"/>
+</svg>

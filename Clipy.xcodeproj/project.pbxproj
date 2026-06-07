@@ -23,7 +23,9 @@
 		A1B2C3D4E5F6020D00 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010D00 /* PreferencesWindowController.swift */; };
 		A1B2C3D4E5F6020E00 /* SnippetsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010E00 /* SnippetsEditorWindowController.swift */; };
 		A1B2C3D4E5F6020F00 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6010F00 /* Extensions.swift */; };
-		A1B2C3D4E5F6021000 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011000 /* Assets.xcassets */; };
+		A1B2C3D4E5F6021000 /* UpdaterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011000 /* UpdaterManager.swift */; };
+		A1B2C3D4E5F6021100 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6011100 /* Assets.xcassets */; };
+		A1B2C3D4E5F6040200 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F6040100 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,7 +45,8 @@
 		A1B2C3D4E5F6010D00 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6010E00 /* SnippetsEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsEditorWindowController.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6010F00 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6011000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F6011000 /* UpdaterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6011100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1B2C3D4E5F6030100 /* Clipy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipy.entitlements; sourceTree = "<group>"; };
 		A1B2C3D4E5F6000300 /* Clipy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -54,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D4E5F6040200 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +92,7 @@
 				A1B2C3D4E5F6010E00,
 				A1B2C3D4E5F6010F00,
 				A1B2C3D4E5F6011000,
+				A1B2C3D4E5F6011100,
 				A1B2C3D4E5F6030000,
 				A1B2C3D4E5F6030100,
 			);
@@ -119,6 +124,9 @@
 			dependencies = (
 			);
 			name = Clipy;
+			packageProductDependencies = (
+				A1B2C3D4E5F6040100 /* Sparkle */,
+			);
 			productName = Clipy;
 			productReference = A1B2C3D4E5F6000300 /* Clipy.app */;
 			productType = "com.apple.product-type.application";
@@ -146,6 +154,9 @@
 			);
 			mainGroup = A1B2C3D4E5F6001000;
 			productRefGroup = A1B2C3D4E5F6001200 /* Products */;
+			packageReferences = (
+				A1B2C3D4E5F6040000 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -159,7 +170,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F6021000 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F6021100 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +197,7 @@
 				A1B2C3D4E5F6020D00 /* PreferencesWindowController.swift in Sources */,
 				A1B2C3D4E5F6020E00 /* SnippetsEditorWindowController.swift in Sources */,
 				A1B2C3D4E5F6020F00 /* Extensions.swift in Sources */,
+				A1B2C3D4E5F6021000 /* UpdaterManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,7 +247,7 @@
 				CODE_SIGN_IDENTITY = "ModernClipy Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Clipy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -257,7 +269,7 @@
 				CODE_SIGN_IDENTITY = "ModernClipy Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Clipy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -292,6 +304,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1B2C3D4E5F6040000 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1B2C3D4E5F6040100 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F6040000 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = A1B2C3D4E5F6000100 /* Project object */;

@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Preferences.shared
         _ = ClipboardHistory.shared
         _ = SnippetManager.shared
+        _ = UpdaterManager.shared
 
         menuBarManager = MenuBarManager()
         ClipboardMonitor.shared.start()

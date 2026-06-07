@@ -62,46 +62,49 @@ private struct SnippetsEditorView: View {
     // MARK: - Folder column (list + bottom action bar)
 
     private var folderColumn: some View {
-        VStack(spacing: 0) {
-            List(selection: $selectedFolderID) {
-                ForEach(manager.folders) { folder in
-                    Label(folder.name, systemImage: "folder")
-                        .tag(folder.id)
+        List(foldersBinding, editActions: .move, selection: $selectedFolderID) { $folder in
+            Label(folder.name, systemImage: "folder")
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                Divider()
+                // Bottom bar: + and − on the left, ✏️ Rename on the right
+                HStack(spacing: 0) {
+                    Button(action: { showAddFolder = true }) {
+                        Image(systemName: "plus").frame(width: 28, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .help("New Folder")
+
+                    Button(action: deleteSelectedFolder) {
+                        Image(systemName: "minus").frame(width: 28, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(selectedFolderID == nil)
+                    .help("Delete Folder")
+
+                    Spacer()
+
+                    Button(action: beginRename) {
+                        Image(systemName: "pencil").frame(width: 28, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(selectedFolderID == nil)
+                    .help("Rename Folder")
                 }
-                .onMove { manager.moveFolder(from: $0, to: $1) }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 3)
+                .background(Color(NSColor.windowBackgroundColor))
             }
-
-            Divider()
-
-            // Bottom bar: + and − on the left, ✏️ Rename on the right
-            HStack(spacing: 0) {
-                Button(action: { showAddFolder = true }) {
-                    Image(systemName: "plus").frame(width: 28, height: 22)
-                }
-                .buttonStyle(.plain)
-                .help("New Folder")
-
-                Button(action: deleteSelectedFolder) {
-                    Image(systemName: "minus").frame(width: 28, height: 22)
-                }
-                .buttonStyle(.plain)
-                .disabled(selectedFolderID == nil)
-                .help("Delete Folder")
-
-                Spacer()
-
-                Button(action: beginRename) {
-                    Image(systemName: "pencil").frame(width: 28, height: 22)
-                }
-                .buttonStyle(.plain)
-                .disabled(selectedFolderID == nil)
-                .help("Rename Folder")
-            }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 3)
-            .background(Color(NSColor.windowBackgroundColor))
         }
         .navigationTitle("Folders")
+    }
+
+    private var foldersBinding: Binding<[SnippetFolder]> {
+        Binding(
+            get: { manager.folders },
+            set: { manager.folders = $0; manager.persist() }
+        )
     }
 
     private func beginRename() {

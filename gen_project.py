@@ -40,6 +40,7 @@ SOURCES = [
     "PreferencesWindowController.swift",
     "SnippetsEditorWindowController.swift",
     "Extensions.swift",
+    "UpdaterManager.swift",
 ]
 
 # resource files
@@ -52,6 +53,11 @@ for i, f in enumerate(SOURCES + RESOURCES):
 
 INFOPLIST_REF    = u(0x0300)
 ENTITLEMENTS_REF = u(0x0301)
+
+# Sparkle SPM package
+SPK_PKG_REF   = u(0x0400)   # XCRemoteSwiftPackageReference "Sparkle"
+SPK_PROD_DEP  = u(0x0401)   # XCSwiftPackageProductDependency Sparkle
+SPK_BUILD_REF = u(0x0402)   # PBXBuildFile Sparkle in Frameworks
 
 # ── helpers ────────────────────────────────────────────────────────
 def file_type(name):
@@ -112,7 +118,7 @@ COMMON_TARGET = f"""
 \t\t\t\tCODE_SIGN_IDENTITY = "ModernClipy Dev";
 \t\t\t\tCODE_SIGN_STYLE = Manual;
 \t\t\t\tCOMBINE_HIDPI_IMAGES = YES;
-\t\t\t\tENABLE_HARDENED_RUNTIME = NO;
+\t\t\t\tENABLE_HARDENED_RUNTIME = YES;
 \t\t\t\tINFOPLIST_FILE = Clipy/Info.plist;
 \t\t\t\tLD_RUNPATH_SEARCH_PATHS = (
 \t\t\t\t\t"$(inherited)",
@@ -133,6 +139,7 @@ pbx = f"""// !$*UTF8*$!
 
 /* Begin PBXBuildFile section */
 {pbx_build_files()}
+\t\t{SPK_BUILD_REF} /* Sparkle in Frameworks */ = {{isa = PBXBuildFile; productRef = {SPK_PROD_DEP} /* Sparkle */; }};
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -144,6 +151,7 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tisa = PBXFrameworksBuildPhase;
 \t\t\tbuildActionMask = 2147483647;
 \t\t\tfiles = (
+\t\t\t\t{SPK_BUILD_REF} /* Sparkle in Frameworks */,
 \t\t\t);
 \t\t\trunOnlyForDeploymentPostprocessing = 0;
 \t\t}};
@@ -191,6 +199,9 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tdependencies = (
 \t\t\t);
 \t\t\tname = Clipy;
+\t\t\tpackageProductDependencies = (
+\t\t\t\t{SPK_PROD_DEP} /* Sparkle */,
+\t\t\t);
 \t\t\tproductName = Clipy;
 \t\t\tproductReference = {PRODUCT_APP} /* Clipy.app */;
 \t\t\tproductType = "com.apple.product-type.application";
@@ -218,6 +229,9 @@ pbx = f"""// !$*UTF8*$!
 \t\t\t);
 \t\t\tmainGroup = {MAIN_GROUP};
 \t\t\tproductRefGroup = {PRODUCTS_GRP} /* Products */;
+\t\t\tpackageReferences = (
+\t\t\t\t{SPK_PKG_REF} /* XCRemoteSwiftPackageReference "Sparkle" */,
+\t\t\t);
 \t\t\tprojectDirPath = "";
 \t\t\tprojectRoot = "";
 \t\t\ttargets = (
@@ -299,6 +313,25 @@ pbx = f"""// !$*UTF8*$!
 \t\t\tdefaultConfigurationName = Release;
 \t\t}};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+\t\t{SPK_PKG_REF} /* XCRemoteSwiftPackageReference "Sparkle" */ = {{
+\t\t\tisa = XCRemoteSwiftPackageReference;
+\t\t\trepositoryURL = "https://github.com/sparkle-project/Sparkle";
+\t\t\trequirement = {{
+\t\t\t\tkind = upToNextMajorVersion;
+\t\t\t\tminimumVersion = 2.0.0;
+\t\t\t}};
+\t\t}};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+\t\t{SPK_PROD_DEP} /* Sparkle */ = {{
+\t\t\tisa = XCSwiftPackageProductDependency;
+\t\t\tpackage = {SPK_PKG_REF} /* XCRemoteSwiftPackageReference "Sparkle" */;
+\t\t\tproductName = Sparkle;
+\t\t}};
+/* End XCSwiftPackageProductDependency section */
 
 \t}};
 \trootObject = {PROJECT} /* Project object */;

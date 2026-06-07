@@ -2,6 +2,18 @@ import Foundation
 import Carbon
 import ServiceManagement
 
+enum HistorySortOrder: Int, CaseIterable {
+    case dateCreated = 0
+    case lastUsed    = 1
+
+    var label: String {
+        switch self {
+        case .dateCreated: return "Date Created"
+        case .lastUsed:    return "Last Used"
+        }
+    }
+}
+
 enum HistoryMenuStyle: Int, CaseIterable {
     case alwaysGrouped     = 0   // all items in 1-10, 11-20, … subfolders
     case hybridFirstFlat   = 1   // first 10 flat, older ones in 11-20, 21-30, … subfolders
@@ -67,6 +79,9 @@ final class Preferences: ObservableObject {
     @Published var previewLines: Int {
         didSet { set(previewLines, for: .previewLines) }
     }
+    @Published var historySortOrder: HistorySortOrder {
+        didSet { set(historySortOrder.rawValue, for: .historySortOrder) }
+    }
 
     private init() {
         maxHistoryItems  = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
@@ -78,6 +93,7 @@ final class Preferences: ObservableObject {
         previewLines     = ud.object(forKey: Key.previewLines.rawValue) as? Int ?? 2
         snippetsMenuKeyCode  = UInt32(ud.object(forKey: Key.snippetsMenuKeyCode.rawValue)  as? Int ?? kVK_ANSI_S)
         snippetsMenuModifiers = UInt32(ud.object(forKey: Key.snippetsMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
+        historySortOrder = HistorySortOrder(rawValue: ud.integer(forKey: Key.historySortOrder.rawValue)) ?? .dateCreated
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
@@ -93,7 +109,7 @@ final class Preferences: ObservableObject {
     private enum Key: String {
         case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
         case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth, previewLines
-        case snippetsMenuKeyCode, snippetsMenuModifiers
+        case snippetsMenuKeyCode, snippetsMenuModifiers, historySortOrder
     }
 
     private func set(_ value: Any, for key: Key) {

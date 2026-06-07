@@ -15,6 +15,7 @@ struct ClipItem: Identifiable, Codable, Equatable {
     let stringValue: String?
     let imageData: Data?
     let timestamp: Date
+    var lastUsedAt: Date? = nil
 
     var displayTitle: String {
         switch type {

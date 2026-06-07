@@ -30,6 +30,12 @@ final class ClipboardHistory {
         notify()
     }
 
+    func markUsed(id: UUID) {
+        guard let i = items.firstIndex(where: { $0.id == id }) else { return }
+        items[i].lastUsedAt = Date()
+        save()
+    }
+
     func trim(to count: Int) {
         if items.count > count {
             items = Array(items.prefix(count))
