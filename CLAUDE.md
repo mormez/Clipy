@@ -33,6 +33,11 @@ Sources/
   HotkeyManager.swift
   PasteService.swift
   Preferences.swift / PreferencesWindowController.swift
+Manuals/
+  USER_MANUAL.md
+  QUICK_START.md
+  Modern Clipboard User Manual.docx
+  Modern Clipboard Quick Start.docx
 gen_project.py   ← regenerates Modern Clipboard.xcodeproj when adding/removing source files
 build.sh         ← build + auto-relaunch (see below)
 ```

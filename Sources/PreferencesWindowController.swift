@@ -461,7 +461,7 @@ private struct DocDownloadButton: View {
             HStack(spacing: 5) {
                 Image(systemName: feedbackIcon)
                     .foregroundStyle(feedbackColor)
-                Text(feedback == .success ? "Saved to Desktop" : label)
+                Text(feedback == .success ? "Saved" : label)
                     .lineLimit(1)
             }
         }
@@ -490,16 +490,21 @@ private struct DocDownloadButton: View {
         guard let src = Bundle.main.url(forResource: resource, withExtension: ext) else {
             flash(.failure); return
         }
-        let desktop = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Desktop")
-        var dest = desktop.appendingPathComponent("\(resource).\(ext)")
-        // Avoid overwriting: append (2), (3), … if file already exists
-        var n = 2
-        while FileManager.default.fileExists(atPath: dest.path) {
-            dest = desktop.appendingPathComponent("\(resource) (\(n)).\(ext)")
-            n += 1
-        }
+
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(resource).\(ext)"
+        panel.allowedContentTypes = [.init(filenameExtension: ext) ?? .data]
+        // Default to ~/Downloads
+        panel.directoryURL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, let dest = panel.url else { return }
+
         do {
+            // Replace any existing file at the chosen location
+            if FileManager.default.fileExists(atPath: dest.path) {
+                try FileManager.default.removeItem(at: dest)
+            }
             try FileManager.default.copyItem(at: src, to: dest)
             flash(.success)
         } catch {
