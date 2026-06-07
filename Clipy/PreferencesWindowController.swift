@@ -73,14 +73,6 @@ private struct PreferencesView: View {
                 .pickerStyle(.menu)
                 .frame(maxWidth: 320)
 
-                Picker("Sort history order by:", selection: $prefs.historySortOrder) {
-                    ForEach(HistorySortOrder.allCases, id: \.self) { order in
-                        Text(order.label).tag(order)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: 320)
-
                 HStack {
                     Picker("Maximum items:", selection: $prefs.maxHistoryItems) {
                         ForEach(historyOptions, id: \.self) { count in
@@ -119,6 +111,14 @@ private struct PreferencesView: View {
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }
+
+                Picker("Sort history order by:", selection: $prefs.historySortOrder) {
+                    ForEach(HistorySortOrder.allCases, id: \.self) { order in
+                        Text(order.label).tag(order)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 320)
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipboard at login", isOn: $prefs.launchAtLogin)
@@ -312,7 +312,7 @@ private struct PreferencesView: View {
             VStack(spacing: 6) {
                 HStack(spacing: 4) {
                     Text("Developer:").foregroundStyle(.secondary)
-                    Text("Mor Mezrich for Myrrh Labs").fontWeight(.medium)
+                    Text("Developed by Mor Mezrich for Myrrh Labs. Based on Clipy.").fontWeight(.medium)
                 }
                 HStack(spacing: 4) {
                     Text("Contact:").foregroundStyle(.secondary)
@@ -320,6 +320,8 @@ private struct PreferencesView: View {
                          destination: URL(string: "mailto:modern.clipboard@gmail.com")!)
                         .foregroundStyle(.blue)
                 }
+                CopyrightLinkView()
+                    .padding(.top, 8)
             }
             .font(.system(size: 13))
 
@@ -327,6 +329,84 @@ private struct PreferencesView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Copyright notice
+
+private struct CopyrightLinkView: View {
+    @State private var showingCopyright = false
+
+    var body: some View {
+        Button("See copyright notice") {
+            showingCopyright = true
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.blue)
+        .sheet(isPresented: $showingCopyright) {
+            CopyrightModalView(isPresented: $showingCopyright)
+        }
+    }
+}
+
+private struct CopyrightModalView: View {
+    @Binding var isPresented: Bool
+    @State private var copied = false
+
+    private let licenseText = """
+The MIT License (MIT)
+Copyright (c) 2015-2018 Clipy Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Copyright Notice")
+                .font(.headline)
+
+            ScrollView {
+                Text(licenseText)
+                    .font(.system(size: 12, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(Color(nsColor: .textBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+
+            HStack {
+                Button(copied ? "Copied!" : "Copy to Clipboard") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(licenseText, forType: .string)
+                    copied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
+                }
+                .disabled(copied)
+
+                Button("Save as .txt…") {
+                    let panel = NSSavePanel()
+                    panel.nameFieldStringValue = "LICENSE.txt"
+                    panel.allowedContentTypes = [.plainText]
+                    if panel.runModal() == .OK, let url = panel.url {
+                        try? licenseText.write(to: url, atomically: true, encoding: .utf8)
+                    }
+                }
+
+                Spacer()
+
+                Button("Close") {
+                    isPresented = false
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 480, height: 320)
     }
 }
 

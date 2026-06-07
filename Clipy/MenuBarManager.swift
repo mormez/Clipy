@@ -179,6 +179,13 @@ final class MenuBarManager: NSObject {
     }
 
     @objc private func clearHistory() {
+        let alert = NSAlert()
+        alert.messageText = "Clear Clipboard History?"
+        alert.informativeText = "This will permanently delete all clipboard history. This action cannot be undone."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Clear History")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
         ClipboardHistory.shared.clear()
     }
 

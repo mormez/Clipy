@@ -3,7 +3,7 @@
 <!-- Project folder: /Users/mormezrich/Documents/Claude Code Projects/Modern Clipboard/ -->
 
 ## Project overview
-Modern Swift clipboard manager for macOS 26 / Apple Silicon. Personal rebuild of the original [Clipy](https://github.com/Clipy/Clipy) app (no longer supported on new macOS). User's repo: https://github.com/mormez/Clipy.
+Modern Swift clipboard manager for macOS 26 / Apple Silicon. Personal rebuild of the original [Clipy](https://github.com/Clipy/Clipy) app (no longer supported on new macOS). User's repo: https://github.com/mormez/ModernClipboard.
 
 ## Target environment
 - macOS 15+ deployment target, arm64 (Apple Silicon)

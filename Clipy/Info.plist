@@ -29,7 +29,7 @@
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>SUFeedURL</key>
-    <string>https://mormez.github.io/Clipy/appcast.xml</string>
+    <string>https://mormez.github.io/ModernClipboard/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>ZCgcRYwjvSqgWkUFJCCKQsGFBxAwZi25ZBXK9/E3YBQ=</string>
     <key>SUEnableAutomaticChecks</key>
