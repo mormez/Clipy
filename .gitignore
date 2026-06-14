@@ -1,5 +1,6 @@
 # Xcode build output
 build/
+releases/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcworkspace/xcuserdata/
