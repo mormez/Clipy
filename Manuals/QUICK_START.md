@@ -40,6 +40,8 @@ Press **⌘⇧V** from anywhere to open the history popup.
 
 The popup closes and pastes into whatever app you were using.
 
+> **Tip:** Copied formatting (bold, links, colors) is preserved on paste if **Preserve formatting when pasting** is enabled in Preferences. Need plain text instead? Hold **⌥ Option** (configurable) while pasting from the popup.
+
 ---
 
 ## Step 5 — Create a Snippet

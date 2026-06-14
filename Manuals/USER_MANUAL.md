@@ -1,6 +1,6 @@
 # Modern Clipboard — User Manual
 
-**Version 1.0 · macOS 15+ · Apple Silicon**
+**Version 1.1 · macOS 15+ · Apple Silicon**
 
 ---
 
@@ -120,6 +120,8 @@ Modern Clipboard polls the clipboard every 0.5 seconds. When it detects new cont
 
 **Empty content:** Blank clipboard entries are silently discarded.
 
+**Preserving formatting:** If **Preserve formatting when pasting** is enabled (see §8 Preferences), copied rich text (bold, italics, links, colors, etc. from apps like Word, Pages, Mail, or a web browser) is stored along with its original formatting. When disabled, only plain text is stored and pasted.
+
 ### The History Popup
 
 Press **⌘⇧V** (default; customizable) anywhere to open the history popup.
@@ -171,6 +173,12 @@ Configure in **Preferences → General → History Menu Style**:
 6. The clipboard monitor pauses briefly (1.5 s) to avoid re-capturing the pasted content.
 
 > **Note:** Steps 4 and 5 require Accessibility permission. If paste does not work, check the permission status in Preferences.
+
+#### Paste and Match Style
+
+If an item was stored with formatting (see "Preserving formatting" above), you can still paste it as plain text on demand: hold down the **paste-and-match-style modifier** (⌥ Option by default; configurable in **Preferences → Hotkeys**) while pressing ⏎ or clicking the item. This strips all formatting and pastes plain text only, regardless of the **Preserve formatting when pasting** setting.
+
+A hint in the popup (e.g., "⌥ to match style") shows the currently configured modifier key.
 
 #### Sorting History
 
@@ -293,6 +301,7 @@ Shows whether Accessibility permission has been granted. Click **Open System Set
 | Items Panel Width | 200 – 600 px | 400 px | Width of the right panel in the popup |
 | Preview Lines | 1 – 3 | 2 | Lines of text shown per item in the popup |
 | Sort Order | Date Created / Last Used | Date Created | How history is ordered |
+| Preserve formatting when pasting | On / Off | Off | When on, copied text keeps its original formatting (bold, links, colors, etc.) when pasted. When off, everything is pasted as plain text. |
 
 #### Startup
 
@@ -301,6 +310,8 @@ Shows whether Accessibility permission has been granted. Click **Open System Set
 #### Hotkeys
 
 Two hotkey recorders — one for the history popup, one for the snippets popup. Click either to record a new shortcut. Click **Restore Default** to go back to ⌘⇧V or ⇧⌘S.
+
+**Paste and match style modifier** — choose which modifier key (⌥ Option, ⌃ Control, ⇧ Shift, or ⌘ Command) temporarily forces plain-text pasting from the history popup, overriding **Preserve formatting when pasting** for that one paste. Default is ⌥ Option. See §5 "Paste and Match Style."
 
 ---
 
