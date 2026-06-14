@@ -335,7 +335,7 @@ private struct PreferencesView: View {
                 }
                 HStack(spacing: 4) {
                     Text("Modern Clipboard is based on Clipy.").foregroundStyle(.secondary)
-                    CopyrightLinkView()
+                    CopyrightLinkView(label: "See copyright notice")
                 }
                 .padding(.top, 8)
             }
@@ -348,6 +348,12 @@ private struct PreferencesView: View {
             .padding(.top, 4)
 
             Spacer()
+
+            HStack(spacing: 4) {
+                Text("Modern Clipboard is provided as-is.").foregroundStyle(.secondary)
+                CopyrightLinkView(label: "See license")
+            }
+            .font(.system(size: 13))
 
             Divider().padding(.horizontal, 40)
 
@@ -380,10 +386,11 @@ private struct PreferencesView: View {
 // MARK: - Copyright notice
 
 private struct CopyrightLinkView: View {
+    let label: String
     @State private var showingCopyright = false
 
     var body: some View {
-        Button("See copyright notice") {
+        Button(label) {
             showingCopyright = true
         }
         .buttonStyle(.plain)
