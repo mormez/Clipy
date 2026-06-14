@@ -16,6 +16,9 @@ struct ClipItem: Identifiable, Codable, Equatable {
     let imageData: Data?
     let timestamp: Date
     var lastUsedAt: Date? = nil
+    // Raw RTF/HTML pasteboard data, captured only when "Preserve formatting" is enabled.
+    var richData: Data? = nil
+    var richFormat: ClipType? = nil
 
     var displayTitle: String {
         switch type {

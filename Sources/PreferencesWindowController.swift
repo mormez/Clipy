@@ -119,6 +119,11 @@ private struct PreferencesView: View {
                 }
                 .pickerStyle(.menu)
                 .frame(maxWidth: 320)
+
+                Toggle("Preserve formatting when pasting", isOn: $prefs.preserveFormatting)
+                Text("When enabled, copied text keeps its original formatting (bold, links, colors, etc.) when pasted. When disabled, everything is pasted as plain text.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
             Section("Startup") {
                 Toggle("Launch Modern Clipboard at login", isOn: $prefs.launchAtLogin)
@@ -146,6 +151,14 @@ private struct PreferencesView: View {
                     }
                     .buttonStyle(.bordered).controlSize(.small)
                 }
+
+                Picker("Paste and match style modifier:", selection: $prefs.matchStyleModifier) {
+                    ForEach(MatchStyleModifier.allCases, id: \.self) { modifier in
+                        Text(modifier.label).tag(modifier)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 320)
             }
         }
         .formStyle(.grouped)

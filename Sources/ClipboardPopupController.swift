@@ -200,7 +200,9 @@ final class ClipboardPopupController {
             flatItems: currentFlatItems,
             clipFolders: currentFolders,
             snippetFolders: snippetFolders,
-            onSelectFlatItem: { [weak self] item in self?.pasteItem(item) },
+            onSelectFlatItem: { [weak self] item in
+                self?.pasteItem(item, matchStyle: NSEvent.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
+            },
             onSelectClipFolder: { [weak self] fi in self?.openClipFolder(fi) },
             onSelectSnippetFolder: { [weak self] si in self?.openSnippetFolder(si) }
         )
@@ -256,7 +258,9 @@ final class ClipboardPopupController {
                                 thumbnailImage: item.thumbnailImage)
                     },
                     onSelectRow: { [weak self] i in
-                        if i < folder.items.count { self?.pasteItem(folder.items[i]) }
+                        if i < folder.items.count {
+                            self?.pasteItem(folder.items[i], matchStyle: NSEvent.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
+                        }
                     }
                 )
             }
@@ -367,12 +371,12 @@ final class ClipboardPopupController {
 
     // MARK: - Paste
 
-    private func pasteItem(_ item: ClipItem) {
+    private func pasteItem(_ item: ClipItem, matchStyle: Bool = false) {
         let app = previousApp
         ClipboardHistory.shared.markUsed(id: item.id)
         hide()
         ClipboardMonitor.shared.pause()
-        PasteService.shared.setClipboard(item: item)
+        PasteService.shared.setClipboard(item: item, matchStyle: matchStyle)
         activateThenPaste(app)
     }
 
@@ -426,12 +430,14 @@ final class ClipboardPopupController {
         case 125: state.selectedRowIndex = min(state.selectedRowIndex + 1, n - 1); return nil
         case 126: state.selectedRowIndex = max(state.selectedRowIndex - 1, 0);     return nil
         case 36, 76:
-            if state.selectedRowIndex < n { pasteItem(currentFlatItems[state.selectedRowIndex]) }
+            if state.selectedRowIndex < n {
+                pasteItem(currentFlatItems[state.selectedRowIndex], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
+            }
             return nil
         case 53: hide(); return nil
         default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < n {
-                pasteItem(currentFlatItems[d-1]); return nil
+            if let ch = event.charactersIgnoringModifiers, let d = Int(ch), (1...9).contains(d), d-1 < n {
+                pasteItem(currentFlatItems[d-1], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag)); return nil
             }
             return event
         }
@@ -445,16 +451,18 @@ final class ClipboardPopupController {
             state.selectedRowIndex = max(state.selectedRowIndex - 1, 0);             return nil
         case 124, 36, 76:   // → or Enter
             switch rowKind(state.selectedRowIndex) {
-            case .flatItem(let i):       pasteItem(currentFlatItems[i])
+            case .flatItem(let i):       pasteItem(currentFlatItems[i], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
             case .clipFolder(let fi):    openClipFolder(fi)
             case .snippetFolder(let si): openSnippetFolder(si)
             }
             return nil
         case 53: hide(); return nil
         default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d) {
+            if let ch = event.charactersIgnoringModifiers, let d = Int(ch), (1...9).contains(d) {
                 let fi = d - 1
-                if fi < flatCount { pasteItem(currentFlatItems[fi]); return nil }
+                if fi < flatCount {
+                    pasteItem(currentFlatItems[fi], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag)); return nil
+                }
             }
             return event
         }
@@ -477,17 +485,17 @@ final class ClipboardPopupController {
             guard state.selectedItemIndex < itemCount else { return nil }
             switch state.expandedPane {
             case .clipboard(let fi):
-                pasteItem(currentFolders[fi].items[state.selectedItemIndex])
+                pasteItem(currentFolders[fi].items[state.selectedItemIndex], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
             case .snippet(let si):
                 pasteSnippet(snippetFolders[si].snippets[state.selectedItemIndex])
             case nil: break
             }
             return nil
         default:
-            if let ch = event.characters, let d = Int(ch), (1...9).contains(d), d-1 < itemCount {
+            if let ch = event.charactersIgnoringModifiers, let d = Int(ch), (1...9).contains(d), d-1 < itemCount {
                 let i = d - 1
                 switch state.expandedPane {
-                case .clipboard(let fi): pasteItem(currentFolders[fi].items[i])
+                case .clipboard(let fi): pasteItem(currentFolders[fi].items[i], matchStyle: event.modifierFlags.contains(Preferences.shared.matchStyleModifier.eventFlag))
                 case .snippet(let si):   pasteSnippet(snippetFolders[si].snippets[i])
                 case nil: break
                 }
@@ -517,8 +525,11 @@ struct FolderPanelView: View {
                 if let img = NSImage(named: "MenuBarIcon") {
                     Image(nsImage: img).resizable().scaledToFit().frame(width: 16, height: 16)
                 }
-                Text("Clipboard History").font(.system(size: 12, weight: .semibold))
+                Text(flatItems.isEmpty ? "Clipboard History" : "History").font(.system(size: 12, weight: .semibold))
                 Spacer()
+                if !flatItems.isEmpty {
+                    Text("\(Preferences.shared.matchStyleModifier.symbol) to match style").font(.system(size: 9)).foregroundStyle(.tertiary).lineLimit(1)
+                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
@@ -608,7 +619,7 @@ struct ItemsPanelView: View {
             HStack(spacing: 6) {
                 Text(title).font(.system(size: 12, weight: .semibold))
                 Spacer()
-                Text("⏎ paste  ←  back").font(.system(size: 10)).foregroundStyle(.tertiary)
+                Text("\(Preferences.shared.matchStyleModifier.symbol) to match style").font(.system(size: 10)).foregroundStyle(.tertiary)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)

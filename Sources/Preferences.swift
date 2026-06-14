@@ -1,6 +1,41 @@
 import Foundation
+import AppKit
 import Carbon
 import ServiceManagement
+
+enum MatchStyleModifier: Int, CaseIterable {
+    case option  = 0
+    case control = 1
+    case shift   = 2
+    case command = 3
+
+    var label: String {
+        switch self {
+        case .option:  return "⌥ Option"
+        case .control: return "⌃ Control"
+        case .shift:   return "⇧ Shift"
+        case .command: return "⌘ Command"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .option:  return "⌥"
+        case .control: return "⌃"
+        case .shift:   return "⇧"
+        case .command: return "⌘"
+        }
+    }
+
+    var eventFlag: NSEvent.ModifierFlags {
+        switch self {
+        case .option:  return .option
+        case .control: return .control
+        case .shift:   return .shift
+        case .command: return .command
+        }
+    }
+}
 
 enum HistorySortOrder: Int, CaseIterable {
     case dateCreated = 0
@@ -82,6 +117,12 @@ final class Preferences: ObservableObject {
     @Published var historySortOrder: HistorySortOrder {
         didSet { set(historySortOrder.rawValue, for: .historySortOrder) }
     }
+    @Published var preserveFormatting: Bool {
+        didSet { set(preserveFormatting, for: .preserveFormatting) }
+    }
+    @Published var matchStyleModifier: MatchStyleModifier {
+        didSet { set(matchStyleModifier.rawValue, for: .matchStyleModifier) }
+    }
 
     private init() {
         maxHistoryItems  = ud.object(forKey: Key.maxHistoryItems.rawValue) as? Int ?? 20
@@ -94,6 +135,8 @@ final class Preferences: ObservableObject {
         snippetsMenuKeyCode  = UInt32(ud.object(forKey: Key.snippetsMenuKeyCode.rawValue)  as? Int ?? kVK_ANSI_S)
         snippetsMenuModifiers = UInt32(ud.object(forKey: Key.snippetsMenuModifiers.rawValue) as? Int ?? (cmdKey | shiftKey))
         historySortOrder = HistorySortOrder(rawValue: ud.integer(forKey: Key.historySortOrder.rawValue)) ?? .dateCreated
+        preserveFormatting = ud.bool(forKey: Key.preserveFormatting.rawValue)
+        matchStyleModifier = MatchStyleModifier(rawValue: ud.integer(forKey: Key.matchStyleModifier.rawValue)) ?? .option
 
         // Migrate from old boolean alwaysGroupInSubfolders if present
         if let old = ud.object(forKey: "alwaysGroupInSubfolders") as? Bool {
@@ -109,7 +152,7 @@ final class Preferences: ObservableObject {
     private enum Key: String {
         case maxHistoryItems, mainMenuKeyCode, mainMenuModifiers
         case excludedBundleIDs, launchAtLogin, historyMenuStyle, itemsPanelWidth, previewLines
-        case snippetsMenuKeyCode, snippetsMenuModifiers, historySortOrder
+        case snippetsMenuKeyCode, snippetsMenuModifiers, historySortOrder, preserveFormatting, matchStyleModifier
     }
 
     private func set(_ value: Any, for key: Key) {

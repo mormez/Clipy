@@ -22,11 +22,15 @@ final class PasteService {
     }
 
     // Used by ClipboardPopupController which handles its own activation timing.
-    func setClipboard(item: ClipItem) {
+    // `matchStyle: true` strips any preserved formatting and pastes plain text only.
+    func setClipboard(item: ClipItem, matchStyle: Bool = false) {
         let pb = NSPasteboard.general
         pb.clearContents()
         switch item.type {
         case .string:
+            if !matchStyle, let data = item.richData, let format = item.richFormat {
+                pb.setData(data, forType: format == .rtf ? .rtf : .html)
+            }
             if let s = item.stringValue { pb.setString(s, forType: .string) }
         case .rtf:
             if let s = item.stringValue, let d = s.data(using: .utf8) {

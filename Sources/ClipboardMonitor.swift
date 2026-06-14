@@ -68,9 +68,21 @@ final class ClipboardMonitor {
 
         // 3. Plain text — always preferred over rich formats for clean display
         if let str = pb.string(forType: .string), !str.isEmpty {
+            var richData: Data? = nil
+            var richFormat: ClipType? = nil
+            if Preferences.shared.preserveFormatting {
+                if let rtf = pb.data(forType: .rtf) {
+                    richData = rtf
+                    richFormat = .rtf
+                } else if let html = pb.data(forType: .html) {
+                    richData = html
+                    richFormat = .html
+                }
+            }
             ClipboardHistory.shared.add(ClipItem(
                 id: UUID(), type: .string,
-                stringValue: str, imageData: nil, timestamp: Date()
+                stringValue: str, imageData: nil, timestamp: Date(),
+                richData: richData, richFormat: richFormat
             ))
             return
         }
